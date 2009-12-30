@@ -1,0 +1,12 @@
+Arduino Serial Thread Information
+12/29/09
+
+CArduinoSerial::Connect requires a callback function. This function is in the following
+format:
+
+	bool CallbackFunction(const CString& strData);
+	
+Once CArduinoSerial::Connect is called, a thread is spawned that will listen to the
+serial port and handle any incoming communication. This listener function will call
+the supplied CallbackFunction with the data read off of the serial line as the 
+strData parameter.
