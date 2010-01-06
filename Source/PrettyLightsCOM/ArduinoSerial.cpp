@@ -41,9 +41,9 @@ void CArduinoSerial::ASStatus(const CString& strMsg, ...)
     m_strASStatus.Format(strMsg, args);
     TRACE(m_strASStatus);
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // ThreadFunc
-
 struct SThreadData 
 {
     bool* pbStopThread;
@@ -52,6 +52,8 @@ struct SThreadData
     HWND hParent;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// ThreadFunc
 UINT ThreadFunc(LPVOID pData)
 {
     struct SThreadData* pstThreadData = (struct SThreadData*)pData;
