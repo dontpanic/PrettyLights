@@ -292,6 +292,10 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\image.txt"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
 			>
 		</File>

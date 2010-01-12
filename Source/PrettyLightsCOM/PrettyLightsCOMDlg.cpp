@@ -13,9 +13,9 @@
 // CPrettyLightsCOMDlg dialog
 
 CPrettyLightsCOMDlg::CPrettyLightsCOMDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CPrettyLightsCOMDlg::IDD, pParent)
+    : CDialog(CPrettyLightsCOMDlg::IDD, pParent)
 {
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+    m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
 void CPrettyLightsCOMDlg::DoDataExchange(CDataExchange* pDX)
@@ -29,10 +29,10 @@ void CPrettyLightsCOMDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(CPrettyLightsCOMDlg, CDialog)
-	ON_WM_PAINT()
-	ON_WM_QUERYDRAGICON()
-	ON_MESSAGE(WM_USER_RX, &CPrettyLightsCOMDlg::OnReceiveData)
-	ON_BN_CLICKED(IDC_BUTTON1, &CPrettyLightsCOMDlg::OnBnClicked_Refresh)
+    ON_WM_PAINT()
+    ON_WM_QUERYDRAGICON()
+    ON_MESSAGE(WM_USER_RX, &CPrettyLightsCOMDlg::OnReceiveData)
+    ON_BN_CLICKED(IDC_BUTTON1, &CPrettyLightsCOMDlg::OnBnClicked_Refresh)
     ON_BN_CLICKED(IDC_BUTTON2, &CPrettyLightsCOMDlg::OnBnClicked_Transmit)
     ON_BN_CLICKED(IDC_BUTTON4, &CPrettyLightsCOMDlg::OnBnClicked_Connect)
 END_MESSAGE_MAP()
@@ -42,18 +42,18 @@ END_MESSAGE_MAP()
 
 BOOL CPrettyLightsCOMDlg::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+    CDialog::OnInitDialog();
 
-	// Set the icon for this dialog.  The framework does this automatically
-	//  when the application's main window is not a dialog
-	SetIcon(m_hIcon, TRUE);			// Set big icon
-	SetIcon(m_hIcon, FALSE);		// Set small icon
+    // Set the icon for this dialog.  The framework does this automatically
+    //  when the application's main window is not a dialog
+    SetIcon(m_hIcon, TRUE);            // Set big icon
+    SetIcon(m_hIcon, FALSE);        // Set small icon
 
-	// TODO: Add extra initialization here
+    // TODO: Add extra initialization here
 
     Setup();
-	
-	return TRUE;  // return TRUE  unless you set the focus to a control
+    
+    return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
 // If you add a minimize button to your dialog, you will need the code below
@@ -62,34 +62,34 @@ BOOL CPrettyLightsCOMDlg::OnInitDialog()
 
 void CPrettyLightsCOMDlg::OnPaint()
 {
-	if (IsIconic())
-	{
-		CPaintDC dc(this); // device context for painting
+    if (IsIconic())
+    {
+        CPaintDC dc(this); // device context for painting
 
-		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
+        SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
-		// Center icon in client rectangle
-		int cxIcon = GetSystemMetrics(SM_CXICON);
-		int cyIcon = GetSystemMetrics(SM_CYICON);
-		CRect rect;
-		GetClientRect(&rect);
-		int x = (rect.Width() - cxIcon + 1) / 2;
-		int y = (rect.Height() - cyIcon + 1) / 2;
+        // Center icon in client rectangle
+        int cxIcon = GetSystemMetrics(SM_CXICON);
+        int cyIcon = GetSystemMetrics(SM_CYICON);
+        CRect rect;
+        GetClientRect(&rect);
+        int x = (rect.Width() - cxIcon + 1) / 2;
+        int y = (rect.Height() - cyIcon + 1) / 2;
 
-		// Draw the icon
-		dc.DrawIcon(x, y, m_hIcon);
-	}
-	else
-	{
-		CDialog::OnPaint();
-	}
+        // Draw the icon
+        dc.DrawIcon(x, y, m_hIcon);
+    }
+    else
+    {
+        CDialog::OnPaint();
+    }
 }
 
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
 HCURSOR CPrettyLightsCOMDlg::OnQueryDragIcon()
 {
-	return static_cast<HCURSOR>(m_hIcon);
+    return static_cast<HCURSOR>(m_hIcon);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,13 +97,50 @@ HCURSOR CPrettyLightsCOMDlg::OnQueryDragIcon()
 void CPrettyLightsCOMDlg::Setup()
 {
     m_bConnected = false;
-	OnBnClicked_Refresh();
+    OnBnClicked_Refresh();
+    
+    CFont font;
+    font.CreateFont(
+        10,                        // nHeight
+        0,                         // nWidth
+        0,                         // nEscapement
+        0,                         // nOrientation
+        FW_NORMAL,                 // nWeight
+        FALSE,                     // bItalic
+        FALSE,                     // bUnderline
+        0,                         // cStrikeOut
+        ANSI_CHARSET,              // nCharSet
+        OUT_DEFAULT_PRECIS,        // nOutPrecision
+        CLIP_DEFAULT_PRECIS,       // nClipPrecision
+        DEFAULT_QUALITY,           // nQuality
+        DEFAULT_PITCH | FF_SWISS,  // nPitchAndFamily
+        "Lucida Console");
+        
+    m_dlgDataBox.SetFont(&font);                 // lpszFacename
+
+    
+    CStdioFile file;
+    
+    if (file.Open("image.txt", CFile::modeRead))
+    {        
+        CString strLine;
+        while(file.ReadString(strLine))
+        {
+            CString strData;
+            m_dlgDataBox.GetWindowText(strData);
+            strData.AppendFormat("%s\r\n", strLine);
+            m_dlgDataBox.SetWindowText(strData);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // _Refresh
 void CPrettyLightsCOMDlg::OnBnClicked_Refresh()
 {
+    // Clear list
+    EmptyDeviceList();
+    
     // Get a list of devices
     CStringVec vecDevs;
     
@@ -163,6 +200,16 @@ void CPrettyLightsCOMDlg::DebugOut(const CString& strItem)
     // Move list to bottom
     m_dlgOutputList.SetScrollPos(SB_VERT, m_dlgOutputList.GetItemCount() - 1);
 }  
+
+///////////////////////////////////////////////////////////////////////////////
+// Listener
+void CPrettyLightsCOMDlg::EmptyDeviceList()
+{
+    for (int i = 0; i < m_dlgDevices.GetCount(); i++)
+    {
+        m_dlgDevices.DeleteString(i);
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Listener

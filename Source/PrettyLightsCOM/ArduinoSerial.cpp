@@ -43,7 +43,7 @@ void CArduinoSerial::ASStatus(const CString& strMsg, ...)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// ThreadFunc
+// SThreadData
 struct SThreadData 
 {
     bool* pbStopThread;
@@ -58,57 +58,56 @@ UINT ThreadFunc(LPVOID pData)
 {
     struct SThreadData* pstThreadData = (struct SThreadData*)pData;
     
-    // This is the CString used throughout the life of the thread. 
-	CString strLine = "";
+    // One and only CString
+    CString strLine = "";
 
     // Loop until thread is cancelled.
     while (!*pstThreadData->pbStopThread)
     {       
-		// See if there is data on the line
-		DWORD dwBytesReady = 0;
-		if (FT_GetQueueStatus(pstThreadData->ftDev, &dwBytesReady) != FT_OK)
-		{
-			TRACE("[ASTHREAD] ASError while reading queue status.\n");
-			ASSERT(FALSE);
-		}
+        // See if there is data on the line
+        DWORD dwBytesReady = 0;
+        if (FT_GetQueueStatus(pstThreadData->ftDev, &dwBytesReady) != FT_OK)
+        {
+            TRACE("[ASTHREAD] ASError while reading queue status.\n");
+            ASSERT(FALSE);
+        }
 
-		if (dwBytesReady > 0)
-		{		
-			// Data present
-
-			DWORD dwBytesRecvdTotal = 0;
-			while (dwBytesRecvdTotal < dwBytesReady)
-			{
-				char byte;
+        if (dwBytesReady > 0)
+        {        
+            // Data present
+            DWORD dwBytesRecvdTotal = 0;
+            while (dwBytesRecvdTotal < dwBytesReady)
+            {
+                char byte;
                 DWORD dwBytesRecvd;
-				if (FT_Read(pstThreadData->ftDev, (LPVOID)&byte, 1, &dwBytesRecvd) != FT_OK)
-				{
-					TRACE("[ASTHREAD] Error while reading data off of line.\n");
+                if (FT_Read(pstThreadData->ftDev, (LPVOID)&byte, 1, &dwBytesRecvd) != FT_OK)
+                {
+                    TRACE("[ASTHREAD] Error while reading data off of line.\n");
                     ASSERT(FALSE);
-					break;
-				}
+                    break;
+                }
 
                 dwBytesRecvdTotal += dwBytesRecvd;            
-				strLine.AppendChar(byte);
+                strLine.AppendChar(byte);
 
-				if (byte == '\n')
-				{
-					// Reached the end of a string, call callback, continue reading
-					pstThreadData->fxCallback(strLine, pstThreadData->hParent);
-					strLine = "";
-				}
-			}			
-		}
+                if (byte == '\n')
+                {
+                    // Reached the end of a string, call callback, continue reading
+                    pstThreadData->fxCallback(strLine, pstThreadData->hParent);
+                    strLine = "";
+                }
+            }            
+        }
 
         // Wait for the polling period
         Sleep(AS_POLL_PERIOD);
-	}
+    }
 
-	// Cleanup
+    // Cleanup
     *pstThreadData->pbStopThread = false;
     delete pstThreadData;
 
-	// End thread and return
+    // End thread and return
     AfxEndThread(EXIT_SUCCESS);
     return 0;
 }
@@ -194,7 +193,7 @@ bool CArduinoSerial::Connected()
 ///////////////////////////////////////////////////////////////////////////////
 // GetConnectedDevices
 bool CArduinoSerial::GetConnectedDevices(CStringVec& vecDevices)
-{	
+{    
     DWORD dwNumDevs;
     if( FT_CreateDeviceInfoList(&dwNumDevs) != FT_OK )
     {
