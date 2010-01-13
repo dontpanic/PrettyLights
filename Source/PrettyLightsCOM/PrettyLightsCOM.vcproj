@@ -191,6 +191,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LEDSimulatorDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\PrettyLightsCOM.cpp"
 				>
 			</File>
@@ -226,6 +230,10 @@
 			>
 			<File
 				RelativePath=".\ArduinoSerial.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LEDSimulatorDlg.h"
 				>
 			</File>
 			<File

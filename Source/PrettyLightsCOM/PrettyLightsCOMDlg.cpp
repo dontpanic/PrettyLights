@@ -14,7 +14,9 @@
 
 CPrettyLightsCOMDlg::CPrettyLightsCOMDlg(CWnd* pParent /*=NULL*/)
     : CDialog(CPrettyLightsCOMDlg::IDD, pParent)
+    , m_dlgSimulate(false)
 {
+    m_pSimDlg = NULL;
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
@@ -26,6 +28,7 @@ void CPrettyLightsCOMDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_EDIT2, m_dlgDataBox);
     DDX_Control(pDX, IDC_BUTTON4, m_dlgConnBtn);
     DDX_Control(pDX, IDC_BUTTON2, m_dlgTxBtn);
+    DDX_Check(pDX, IDC_CHECK1, m_dlgSimulate);
 }
 
 BEGIN_MESSAGE_MAP(CPrettyLightsCOMDlg, CDialog)
@@ -35,6 +38,8 @@ BEGIN_MESSAGE_MAP(CPrettyLightsCOMDlg, CDialog)
     ON_BN_CLICKED(IDC_BUTTON1, &CPrettyLightsCOMDlg::OnBnClicked_Refresh)
     ON_BN_CLICKED(IDC_BUTTON2, &CPrettyLightsCOMDlg::OnBnClicked_Transmit)
     ON_BN_CLICKED(IDC_BUTTON4, &CPrettyLightsCOMDlg::OnBnClicked_Connect)
+    ON_BN_CLICKED(IDC_CHECK1, &CPrettyLightsCOMDlg::OnBnClicked_Simulate)
+    ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 
@@ -283,4 +288,55 @@ LRESULT CPrettyLightsCOMDlg::OnReceiveData(WPARAM wParam, LPARAM lParam)
     
     delete pstrData;
     return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// OnBnClicked_Simulate
+void CPrettyLightsCOMDlg::OnBnClicked_Simulate()
+{
+    UpdateData();
+    
+    if (m_dlgSimulate)
+    {
+        if (!m_pSimDlg)
+        {
+            // Create dialog if it hasn't already been created.
+            m_pSimDlg = new CLEDSimulatorDlg();
+            
+            if (!m_pSimDlg->Create(IDD_DIALOG1, this))
+            {
+                AfxMessageBox("Failed to load simulator window");
+                m_dlgSimulate = FALSE;
+                UpdateData(FALSE);
+                return;
+            }
+        }
+        
+        // Show dialog
+        m_pSimDlg->ShowWindow(SW_SHOW);
+    }
+    else
+    {
+        // Hide dialog
+        if (m_pSimDlg)
+            m_pSimDlg->ShowWindow(SW_HIDE);
+    }
+}
+
+void CPrettyLightsCOMDlg::OnDestroy()
+{
+    CDialog::OnDestroy();
+
+    // Clean up simulation window
+    if (m_pSimDlg)
+    {
+        if (!m_pSimDlg->DestroyWindow())
+        {
+            TRACE("Error destroying simulation window");
+        }
+        
+        delete m_pSimDlg;
+        m_pSimDlg = NULL;
+    }
+    
 }

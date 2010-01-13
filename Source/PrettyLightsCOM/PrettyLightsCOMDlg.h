@@ -3,8 +3,9 @@
 
 #pragma once
 #include "afxwin.h"
-#include "ArduinoSerial.h"
 #include "afxcmn.h"
+#include "ArduinoSerial.h"
+#include "LEDSimulatorDlg.h"
 
 enum CustomMessages
 {
@@ -27,7 +28,9 @@ protected:
     CButton m_dlgTxBtn;
     CButton m_dlgConnBtn;
     CEdit m_dlgDataBox;    
+    int m_dlgSimulate;
     bool m_bConnected;
+    CLEDSimulatorDlg* m_pSimDlg;
     enum { PLCOM_TIMER_ID = 1 };
     
     // Member functions
@@ -44,5 +47,7 @@ protected:
     afx_msg void OnBnClicked_Refresh();
     afx_msg void OnBnClicked_Transmit();
     afx_msg void OnBnClicked_Connect();
+    afx_msg void OnBnClicked_Simulate();
+    afx_msg void OnDestroy();
     DECLARE_MESSAGE_MAP();
 };
