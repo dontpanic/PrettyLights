@@ -301,7 +301,7 @@ void CPrettyLightsCOMDlg::OnBnClicked_Simulate()
         if (!m_pSimDlg)
         {
             // Create dialog if it hasn't already been created.
-            m_pSimDlg = new CLEDSimulatorDlg();
+            m_pSimDlg = new CLEDSimulatorDlg(3, 3);
             
             if (!m_pSimDlg->Create(IDD_DIALOG1, this))
             {
@@ -332,7 +332,7 @@ void CPrettyLightsCOMDlg::OnDestroy()
     {
         if (!m_pSimDlg->DestroyWindow())
         {
-            TRACE("Error destroying simulation window");
+            TRACE("Error destroying simulation window\n");
         }
         
         delete m_pSimDlg;

@@ -233,6 +233,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DXSurfaceMgr.h"
+				>
+			</File>
+			<File
 				RelativePath=".\LEDSimulatorDlg.h"
 				>
 			</File>

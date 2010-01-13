@@ -14,5 +14,9 @@ DEF_ITERATORS(CStringVec);
 typedef std::vector<CStringVec> CString2dVec;
 DEF_ITERATORS(CString2dVec);
 
+// COLORREF Vector
+typedef std::vector<COLORREF> CColorRefVec;
+DEF_ITERATORS(CColorRefVec);
+
 
 
