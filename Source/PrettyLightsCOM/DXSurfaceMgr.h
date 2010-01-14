@@ -1095,7 +1095,7 @@ static BOOL DXErrorString(HRESULT hResult, LPTSTR lpszErrorBuff, DWORD cchError)
 
 	if (cLen)
 	{
-		strncpy (lpszErrorBuff, lpszError, cLen);
+		strncpy(lpszErrorBuff, lpszError, cLen);
 		lpszErrorBuff[cLen] = 0;
 	}
 

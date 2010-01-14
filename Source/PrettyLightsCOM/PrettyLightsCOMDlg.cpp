@@ -298,18 +298,17 @@ void CPrettyLightsCOMDlg::OnBnClicked_Simulate()
     
     if (m_dlgSimulate)
     {
-        if (!m_pSimDlg)
+        ASSERT(m_pSimDlg == NULL);
+        
+        // Create dialog if it hasn't already been created.
+        m_pSimDlg = new CLEDSimulatorDlg(3, 3);
+        
+        if (!m_pSimDlg->Create(IDD_DIALOG1, this))
         {
-            // Create dialog if it hasn't already been created.
-            m_pSimDlg = new CLEDSimulatorDlg(3, 3);
-            
-            if (!m_pSimDlg->Create(IDD_DIALOG1, this))
-            {
-                AfxMessageBox("Failed to load simulator window");
-                m_dlgSimulate = FALSE;
-                UpdateData(FALSE);
-                return;
-            }
+            AfxMessageBox("Failed to load simulator window");
+            m_dlgSimulate = FALSE;
+            UpdateData(FALSE);
+            return;
         }
         
         // Show dialog
@@ -317,9 +316,12 @@ void CPrettyLightsCOMDlg::OnBnClicked_Simulate()
     }
     else
     {
+        ASSERT(m_pSimDlg != NULL);
+        
         // Hide dialog
-        if (m_pSimDlg)
-            m_pSimDlg->ShowWindow(SW_HIDE);
+        m_pSimDlg->DestroyWindow();
+        delete m_pSimDlg;
+        m_pSimDlg = NULL;
     }
 }
 
