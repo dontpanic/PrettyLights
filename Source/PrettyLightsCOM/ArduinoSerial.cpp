@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 #include "ArduinoSerial.h"
 #include <stdio.h>
-//#include <dbt.h>
-//#include <winioctl.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Construct
@@ -10,12 +8,15 @@ CArduinoSerial::CArduinoSerial(void)
 {
     m_ftDev = NULL;
     m_strASError = "";
+    m_pSimDlg = NULL;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Destruct
 CArduinoSerial::~CArduinoSerial(void)
 {
+    DisconnectSim();
+    
     if (m_ftDev != NULL)
     {
         Disconnect();
@@ -146,6 +147,33 @@ bool CArduinoSerial::Connect(int iDevice, AS_LISTENER fxListener, HWND hParent)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// ConnectSim
+bool CArduinoSerial::ConnectSim(int iDevice, AS_LISTENER fxListener, HWND hParent)
+{
+    UNUSED(iDevice);
+    UNUSED(fxListener);
+    UNUSED(hParent);
+        
+    // Create simulation dialog
+    if (m_pSimDlg == NULL)
+    {
+        m_pSimDlg = new CLEDSimulatorDlg(1, 1);
+        
+        if (!m_pSimDlg->Create(IDD_DIALOG1))
+        {
+            AfxMessageBox("Failed to load simulator window");
+            return false;
+        }
+        
+        // Show dialog
+        m_pSimDlg->ShowWindow(SW_SHOW);
+    }   
+    
+    
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Disconnect
 bool CArduinoSerial::Disconnect()
 {
@@ -180,6 +208,24 @@ bool CArduinoSerial::Disconnect()
     
     ASStatus("Device closed: 0x%x.", m_ftDev);    
     m_ftDev = NULL;
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// DisconnectSim
+bool CArduinoSerial::DisconnectSim()
+{    
+    if (m_pSimDlg != NULL)
+    {
+        if (!m_pSimDlg->DestroyWindow())
+        {
+            TRACE("Error destroying simulation window\n");
+        }
+        
+        delete m_pSimDlg;
+        m_pSimDlg = NULL;
+    }
+    
     return true;
 }
 
@@ -254,6 +300,15 @@ bool CArduinoSerial::SendString(const CString& strData)
     }   
     
     delete [] buf;
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// SendStringSim
+bool CArduinoSerial::SendStringSim(const CString& strData)
+{
+    ASSERT(m_pSimDlg != NULL);
+    m_pSimDlg->Parse(strData);
     return true;
 }
 

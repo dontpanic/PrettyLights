@@ -30,6 +30,7 @@ protected:
     CEdit m_dlgDataBox;    
     int m_dlgSimulate;
     bool m_bConnected;
+    bool m_bLoop;
     CLEDSimulatorDlg* m_pSimDlg;
     enum { PLCOM_TIMER_ID = 1 };
     
@@ -50,4 +51,7 @@ protected:
     afx_msg void OnBnClicked_Simulate();
     afx_msg void OnDestroy();
     DECLARE_MESSAGE_MAP();
+public:
+    afx_msg void OnBnClicked_Loop();
+    CButton m_dlgLoopBtn;
 };

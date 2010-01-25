@@ -1,6 +1,6 @@
 #pragma once
 #include "MyStl.h"
-#include "DxSurfaceMgr.h"
+#include "resource.h"
 
 // Colors 
 #define LEDSIM_STROKECOLOR      RGB(  0,  0,  0)
@@ -18,8 +18,9 @@ class CLEDSimulatorDlg : public CDialog
 
 public:
 
-	CLEDSimulatorDlg(int iNumRows, int iNumCols, CWnd* pParent = NULL); 
+	CLEDSimulatorDlg(int iNumRows, int iNumCols, CWnd* pParent = NULL);
 	virtual ~CLEDSimulatorDlg();
+	bool Parse(const CString& strData);
 	enum { IDD = IDD_DIALOG1 };
 
 protected:
@@ -29,14 +30,12 @@ protected:
     int m_iTestIndx;
     int m_iTimer;
     CColorRefVec m_vecLedColors;
-    CDXSurfaceManager_NBP m_dxMgr;
     
     void OnTimer(UINT nIDEvent);
 	virtual void DoDataExchange(CDataExchange* pDX); 
     virtual BOOL OnInitDialog();
     afx_msg void OnPaint();
+    afx_msg void OnDestroy();
 
 	DECLARE_MESSAGE_MAP()
-public:
-    afx_msg void OnDestroy();
 };

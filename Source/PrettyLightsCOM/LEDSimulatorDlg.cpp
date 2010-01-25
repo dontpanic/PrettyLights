@@ -2,7 +2,7 @@
 //
 
 #include "stdafx.h"
-#include "PrettyLightsCOM.h"
+#include "resource.h"
 #include "LEDSimulatorDlg.h"
 
 
@@ -112,24 +112,77 @@ void CLEDSimulatorDlg::OnPaint()
 
 void CLEDSimulatorDlg::OnTimer(UINT nIDEvent)
 {
-    if (nIDEvent == LEDSIM_TIMERID)
-    {
-        if (m_iTestIndx == 0)
-            m_vecLedColors.back() = RGB(0, 0, 0);
-        else
-            m_vecLedColors[m_iTestIndx - 1] = RGB(0, 0, 0);
-            
-        m_vecLedColors[m_iTestIndx++] = RGB(255, 0, 0);
-        
-        if (m_iTestIndx >= (int) m_vecLedColors.size())
-            m_iTestIndx = 0;
-            
-        Invalidate();
-    }
+    //if (nIDEvent == LEDSIM_TIMERID)
+    //{
+    //    if (m_iTestIndx == 0)
+    //        m_vecLedColors.back() = RGB(0, 0, 0);
+    //    else
+    //        m_vecLedColors[m_iTestIndx - 1] = RGB(0, 0, 0);
+    //        
+    //    m_vecLedColors[m_iTestIndx++] = RGB(255, 0, 0);
+    //    
+    //    if (m_iTestIndx >= (int) m_vecLedColors.size())
+    //        m_iTestIndx = 0;
+    //        
+    //    Invalidate();
+    //}
 }
 
 void CLEDSimulatorDlg::OnDestroy()
 {
     KillTimer(LEDSIM_TIMERID);
     CDialog::OnDestroy();
+}
+
+bool CLEDSimulatorDlg::Parse(const CString& strData)
+{
+    // Copy CString into a char* to mimic C
+    char* line = (char*) malloc(strData.GetLength() + 1);
+    sprintf(line, "%s", strData);
+    
+    int R, G, B, I;
+    char *temp;
+    
+    if ((temp = strtok(line, ",")) == NULL)
+    {
+        TRACE("Expected R value not found\n");
+        return false;
+    }
+        
+    R = atoi(temp);
+        
+    if ((temp = strtok(NULL, ",")) == NULL)
+    {
+        TRACE("Expected G value not found\n");   
+        return false;
+    }
+    
+    G = atoi(temp);         
+        
+    if ((temp = strtok(NULL, ",")) == NULL)
+    {
+        TRACE("Expected B value not found\n");
+        return false;
+    }
+        
+    B = atoi(temp);
+    
+    if ((temp = strtok(NULL, ",\n ")) == NULL)
+    {
+        TRACE("Expected I value not found\n");
+        return false;
+    }
+        
+    I = atoi(temp); // NOT USED HERE
+    
+    // Save to simulator data. 
+    if (m_iTestIndx >= m_vecLedColors.size())
+    {
+        m_iTestIndx = 0;
+    }        
+    m_vecLedColors[m_iTestIndx++] = RGB(R, G, B);
+    
+    free(line);
+    Invalidate();
+    return true;
 }

@@ -17,6 +17,7 @@ CPrettyLightsCOMDlg::CPrettyLightsCOMDlg(CWnd* pParent /*=NULL*/)
     , m_dlgSimulate(false)
 {
     m_pSimDlg = NULL;
+    m_bLoop = false;
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
@@ -29,6 +30,7 @@ void CPrettyLightsCOMDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_BUTTON4, m_dlgConnBtn);
     DDX_Control(pDX, IDC_BUTTON2, m_dlgTxBtn);
     DDX_Check(pDX, IDC_CHECK1, m_dlgSimulate);
+    DDX_Control(pDX, IDC_BUTTON5, m_dlgLoopBtn);
 }
 
 BEGIN_MESSAGE_MAP(CPrettyLightsCOMDlg, CDialog)
@@ -40,6 +42,7 @@ BEGIN_MESSAGE_MAP(CPrettyLightsCOMDlg, CDialog)
     ON_BN_CLICKED(IDC_BUTTON4, &CPrettyLightsCOMDlg::OnBnClicked_Connect)
     ON_BN_CLICKED(IDC_CHECK1, &CPrettyLightsCOMDlg::OnBnClicked_Simulate)
     ON_WM_DESTROY()
+    ON_BN_CLICKED(IDC_BUTTON5, &CPrettyLightsCOMDlg::OnBnClicked_Loop)
 END_MESSAGE_MAP()
 
 
@@ -104,24 +107,24 @@ void CPrettyLightsCOMDlg::Setup()
     m_bConnected = false;
     OnBnClicked_Refresh();
     
-    CFont font;
-    font.CreateFont(
-        10,                        // nHeight
-        0,                         // nWidth
-        0,                         // nEscapement
-        0,                         // nOrientation
-        FW_NORMAL,                 // nWeight
-        FALSE,                     // bItalic
-        FALSE,                     // bUnderline
-        0,                         // cStrikeOut
-        ANSI_CHARSET,              // nCharSet
-        OUT_DEFAULT_PRECIS,        // nOutPrecision
-        CLIP_DEFAULT_PRECIS,       // nClipPrecision
-        DEFAULT_QUALITY,           // nQuality
-        DEFAULT_PITCH | FF_SWISS,  // nPitchAndFamily
-        "Lucida Console");
-        
-    m_dlgDataBox.SetFont(&font);                 // lpszFacename
+    //CFont font;
+    //font.CreateFont(
+    //    10,                        // nHeight
+    //    0,                         // nWidth
+    //    0,                         // nEscapement
+    //    0,                         // nOrientation
+    //    FW_NORMAL,                 // nWeight
+    //    FALSE,                     // bItalic
+    //    FALSE,                     // bUnderline
+    //    0,                         // cStrikeOut
+    //    ANSI_CHARSET,              // nCharSet
+    //    OUT_DEFAULT_PRECIS,        // nOutPrecision
+    //    CLIP_DEFAULT_PRECIS,       // nClipPrecision
+    //    DEFAULT_QUALITY,           // nQuality
+    //    DEFAULT_PITCH | FF_SWISS,  // nPitchAndFamily
+    //    "Lucida Console");
+    //    
+    //m_dlgDataBox.SetFont(&font);                 // lpszFacename
 
     
     CStdioFile file;
@@ -270,7 +273,11 @@ void CPrettyLightsCOMDlg::OnBnClicked_Transmit()
 {
     CString strData;
     m_dlgDataBox.GetWindowText(strData);
-    m_as.SendString(strData);
+    
+    if (m_dlgSimulate)
+        m_as.SendStringSim(strData);
+    else
+        m_as.SendString(strData);
     
     CString strLog;
     strLog.Format("Transmit: %s", strData);
@@ -298,31 +305,46 @@ void CPrettyLightsCOMDlg::OnBnClicked_Simulate()
     
     if (m_dlgSimulate)
     {
-        ASSERT(m_pSimDlg == NULL);
-        
-        // Create dialog if it hasn't already been created.
-        m_pSimDlg = new CLEDSimulatorDlg(3, 3);
-        
-        if (!m_pSimDlg->Create(IDD_DIALOG1, this))
-        {
-            AfxMessageBox("Failed to load simulator window");
-            m_dlgSimulate = FALSE;
-            UpdateData(FALSE);
-            return;
-        }
-        
-        // Show dialog
-        m_pSimDlg->ShowWindow(SW_SHOW);
+        m_as.ConnectSim(0);
+        m_dlgDataBox.EnableWindow(TRUE);
+        m_dlgTxBtn.EnableWindow(TRUE);
+        m_dlgLoopBtn.EnableWindow(TRUE);
     }
     else
     {
-        ASSERT(m_pSimDlg != NULL);
-        
-        // Hide dialog
-        m_pSimDlg->DestroyWindow();
-        delete m_pSimDlg;
-        m_pSimDlg = NULL;
+        m_as.DisconnectSim();
+        m_dlgDataBox.EnableWindow(FALSE);
+        m_dlgTxBtn.EnableWindow(FALSE);
+        m_dlgLoopBtn.EnableWindow(FALSE);
     }
+    
+    //if (m_dlgSimulate)
+    //{
+    //    ASSERT(m_pSimDlg == NULL);
+    //    
+    //    // Create dialog if it hasn't already been created.
+    //    m_pSimDlg = new CLEDSimulatorDlg(3, 3);
+    //    
+    //    if (!m_pSimDlg->Create(IDD_DIALOG1, this))
+    //    {
+    //        AfxMessageBox("Failed to load simulator window");
+    //        m_dlgSimulate = FALSE;
+    //        UpdateData(FALSE);
+    //        return;
+    //    }
+    //    
+    //    // Show dialog
+    //    m_pSimDlg->ShowWindow(SW_SHOW);
+    //}
+    //else
+    //{
+    //    ASSERT(m_pSimDlg != NULL);
+    //    
+    //    // Hide dialog
+    //    m_pSimDlg->DestroyWindow();
+    //    delete m_pSimDlg;
+    //    m_pSimDlg = NULL;
+    //}
 }
 
 void CPrettyLightsCOMDlg::OnDestroy()
@@ -330,15 +352,64 @@ void CPrettyLightsCOMDlg::OnDestroy()
     CDialog::OnDestroy();
 
     // Clean up simulation window
-    if (m_pSimDlg)
-    {
-        if (!m_pSimDlg->DestroyWindow())
-        {
-            TRACE("Error destroying simulation window\n");
-        }
-        
-        delete m_pSimDlg;
-        m_pSimDlg = NULL;
-    }
+    //if (m_pSimDlg)
+    //{
+    //    if (!m_pSimDlg->DestroyWindow())
+    //    {
+    //        TRACE("Error destroying simulation window\n");
+    //    }
+    //    
+    //    delete m_pSimDlg;
+    //    m_pSimDlg = NULL;
+    //}    
+}
+
+struct SLoopThreadData
+{
+    bool* pbLoop;
+    CString strData;
+    CArduinoSerial* pAS;
+};
+
+UINT LoopThread(LPVOID pData)
+{
+    SLoopThreadData* pTD = (SLoopThreadData*) pData;    
     
+    while (*pTD->pbLoop)
+    {
+        CString strLine;
+        int iTok = 0;
+        while ((strLine = pTD->strData.Tokenize("\r\n", iTok)) != "")
+        {
+            pTD->pAS->SendStringSim(strLine);
+            Sleep(500);
+        }    
+    }   
+    
+    delete pTD;
+    return 0;  
+}
+
+void CPrettyLightsCOMDlg::OnBnClicked_Loop()
+{ 
+    if (!m_bLoop)
+    {   
+        m_bLoop = true;
+        
+        CString strData, strLine;
+        m_dlgDataBox.GetWindowText(strData);
+        
+        struct SLoopThreadData* pTD = new SLoopThreadData();
+        pTD->pAS = &m_as;
+        pTD->pbLoop = &m_bLoop;
+        pTD->strData = strData;
+        
+        AfxBeginThread(LoopThread, (void*) pTD);
+        m_dlgLoopBtn.SetWindowText("Stop");
+    }
+    else
+    {    
+        m_bLoop = false;
+        m_dlgLoopBtn.SetWindowText("Loop");
+    }  
 }
