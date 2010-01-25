@@ -18,6 +18,7 @@ CPrettyLightsCOMDlg::CPrettyLightsCOMDlg(CWnd* pParent /*=NULL*/)
 {
     m_pSimDlg = NULL;
     m_bLoop = false;
+    m_dlgSimulate = 0;
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
