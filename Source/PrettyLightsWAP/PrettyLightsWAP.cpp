@@ -44,6 +44,7 @@ CPrettyLightsWAPApp theApp;
 // this is the only exported symbol. returns our main header.
 extern "C" __declspec( dllexport ) winampVisHeader* winampVisGetHeader()
 {
+    AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	return theApp.GetHeader();
 }
 
@@ -123,6 +124,10 @@ int CPrettyLightsWAPApp::Initalize(winampVisModule *this_mod)
 {
 	AllocConsole();
 	outputToConsole("starting Pretty Lights plugin");
+
+    // Start simulation
+    theApp.m_as.ConnectSim(0);
+    //theApp.m_as.ConnectSim(0, NULL, theApp.m_visMod.hwndParent);
 	return 0;
 }
 

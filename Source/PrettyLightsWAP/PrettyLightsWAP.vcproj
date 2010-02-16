@@ -22,7 +22,7 @@
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			UseOfMFC="2"
-			CharacterSet="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -186,6 +186,14 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\ArduinoSerial.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LEDSimulatorDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\PrettyLightsWAP.cpp"
 				>
 			</File>
@@ -220,6 +228,18 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\ArduinoSerial.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LEDSimulatorDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MyStl.h"
+				>
+			</File>
+			<File
 				RelativePath=".\PrettyLightsWAP.h"
 				>
 			</File>
@@ -251,6 +271,14 @@
 			</File>
 			<File
 				RelativePath=".\res\PrettyLightsWAP.rc2"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Lib"
+			>
+			<File
+				RelativePath="..\..\Lib\FTDI\ftd2xx.lib"
 				>
 			</File>
 		</Filter>

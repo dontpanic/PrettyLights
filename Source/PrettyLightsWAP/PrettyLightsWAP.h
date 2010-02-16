@@ -6,6 +6,7 @@
 
 #include "resource.h"
 #include "WinAmpAPI.h"
+#include "ArduinoSerial.h"
 
 #define PLUGIN_NAME "Pretty Lights"     // plugin name/title
 #define MOD_NAME    "Pretty Lights 0.01"   // module name
@@ -23,8 +24,13 @@ public:
     static int Render(winampVisModule *this_mod);
     static void Quit(winampVisModule *this_mod);
 
+    void StartSim();
+
 	DECLARE_MESSAGE_MAP()
 
     winampVisModule m_visMod;
     winampVisHeader m_visHdr;
+    CArduinoSerial m_as;
+
+private:
 };
