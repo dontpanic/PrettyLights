@@ -38,37 +38,66 @@
 BEGIN_MESSAGE_MAP(CPrettyLightsWAPApp, CWinApp)
 END_MESSAGE_MAP()
 
-// The one and only CPrettyLightsWAPApp object
-CPrettyLightsWAPApp theApp;
+winampVisHeader hdr = 
+{ 
+    VIS_HDRVER, 
+    PLUGIN_NAME, 
+    CPrettyLightsWAPApp::GetModule 
+};
+
+winampVisModule mod1 =
+{
+    MOD_NAME,
+	NULL,	// hwndParent
+	NULL,	// hDllInstance
+	0,		// sRate
+	0,		// nCh
+	0,		// latencyMS - delay between audio & video
+	40,		// delayMS - winamp will make sure that at least this much time passes per frame.
+	0,		// spectrumNch
+	2,		// waveformNch
+	{ 0, },	// spectrumData
+	{ 0, },	// waveformData
+    &CPrettyLightsWAPApp::Config,
+    &CPrettyLightsWAPApp::Initalize,
+    &CPrettyLightsWAPApp::Render, 
+    &CPrettyLightsWAPApp::Quit
+};
 
 // this is the only exported symbol. returns our main header.
 extern "C" __declspec( dllexport ) winampVisHeader* winampVisGetHeader()
 {
-    AFX_MANAGE_STATE(AfxGetStaticModuleState());
-	return theApp.GetHeader();
+	return &hdr;
 }
+
+// The one and only CPrettyLightsWAPApp object
+CPrettyLightsWAPApp theApp;
 
 CPrettyLightsWAPApp::CPrettyLightsWAPApp()
 {
-    m_visMod.description = MOD_NAME;
-	m_visMod.hwndParent = NULL;
-    m_visMod.hDllInstance = NULL;
-    m_visMod.sRate = 0;
-    m_visMod.nCh = 0;       
-    m_visMod.latencyMS = 0;        
-    m_visMod.delayMS = 2;         
-    m_visMod.spectrumNCh = 0;     
-    m_visMod.waveformNCh = 2;     
-    memset(&m_visMod.spectrumData, 0, 2 * 576);
-    memset(&m_visMod.waveformData, 0, 2 * 576);
-    m_visMod.Config = &CPrettyLightsWAPApp::Config;
-    m_visMod.Init = &CPrettyLightsWAPApp::Initalize;
-    m_visMod.Render = &CPrettyLightsWAPApp::Render;
-    m_visMod.Quit = &CPrettyLightsWAPApp::Quit;
+    m_visMod = &mod1; //(winampVisModule*) malloc(sizeof(winampVisModule));
+ //   m_visMod->description = PLUGIN_NAME;
+	//m_visMod->hwndParent = NULL;
+ //   m_visMod->hDllInstance = NULL;
+ //   m_visMod->sRate = 0;
+ //   m_visMod->nCh = 0;       
+ //   m_visMod->latencyMS = 0;        
+ //   m_visMod->delayMS = 40;         
+ //   m_visMod->spectrumNCh = 2;     
+ //   m_visMod->waveformNCh = 2;
+ //   memset(&m_visMod->spectrumData, 0, 2 * 576);
+ //   memset(&m_visMod->waveformData, 0, 2 * 576);
+ //   m_visMod->Config = &CPrettyLightsWAPApp::Config;
+ //   m_visMod->Init = &CPrettyLightsWAPApp::Initalize;
+ //   m_visMod->Render = &CPrettyLightsWAPApp::Render;
+ //   m_visMod->Quit = &CPrettyLightsWAPApp::Quit;
 
-    m_visHdr.version = VIS_HDRVER;
-    m_visHdr.description = PLUGIN_NAME;
-    m_visHdr.getModule = &CPrettyLightsWAPApp::GetModule;
+    m_visHdr = &hdr; //(winampVisHeader*) malloc(sizeof(winampVisHeader));
+    //m_visHdr->version = VIS_HDRVER;
+    //m_visHdr->description = PLUGIN_NAME;
+    //m_visHdr->getModule = &CPrettyLightsWAPApp::GetModule;
+
+    m_bInBass = false;
 }
 
 
@@ -83,57 +112,66 @@ BOOL CPrettyLightsWAPApp::InitInstance()
 
 
 //output the given message to the console
-void outputToConsole(char* msg)
+//void outputchar* msg)
+//{
+//  HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+//  DWORD bufflen = strlen(msg);
+//  LPDWORD charsout = 0;
+//  TCHAR buffer[500];
+//  unsigned int i = 0;
+//  for(i = 0; i < bufflen; i++)
+//  {
+//	  buffer[i] = *(msg++);
+//  }
+//
+//  //add newline and increment bufflen
+//  buffer[bufflen++] = '\n';
+//  
+//  WriteConsole(handle,&buffer,bufflen,charsout,NULL);
+//}
+
+winampVisModule* CPrettyLightsWAPApp::GetModule(int module)
 {
-  HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-  DWORD bufflen = strlen(msg);
-  LPDWORD charsout = 0;
-  TCHAR buffer[500];
-  unsigned int i = 0;
-  for(i = 0; i < bufflen; i++)
-  {
-	  buffer[i] = *(msg++);
-  }
-
-  //add newline and increment bufflen
-  buffer[bufflen++] = '\n';
-
-  WriteConsole(handle,&buffer,bufflen,charsout,NULL);
-}
-
-winampVisModule* CPrettyLightsWAPApp::GetModule(int module){
 	switch (module)
     {
-        case 0:     return &theApp.m_visMod;
-        default:    TRACE("Unknown vis module: %d\n", module);
-                    return NULL;
+        case 0:     return &mod1;
+        default:    return NULL;
     }
 }
 
-winampVisHeader* CPrettyLightsWAPApp::GetHeader()
-{
-    return &theApp.m_visHdr;
-}
+//winampVisHeader* CPrettyLightsWAPApp::GetHeader()
+//{
+//    return theApp.m_visHdr;
+//}
 
 void CPrettyLightsWAPApp::Config(winampVisModule* this_mod)
 {
-	outputToConsole("configure Pretty Lights");
+	theApp.m_dlgDebug.AddString(CString("configure Pretty Lights"));
 }
 
 int CPrettyLightsWAPApp::Initalize(winampVisModule *this_mod)
 {
-	AllocConsole();
-	outputToConsole("starting Pretty Lights plugin");
+    AFX_MANAGE_STATE(AfxGetStaticModuleState());
+//	AllocConsole();
+//	theApp.m_dlgDebug.AddString("Starting Pretty Lights plugin");
+        //m_pSimDlg->DoModal();
+    if (!theApp.m_dlgDebug.Create(IDD_DIALOG2, CWnd::FromHandle(mod1.hwndParent)))
+    {
+        AfxMessageBox(_T("Failed to load simulator window"));
+        return false;
+    }
+
+    theApp.m_dlgDebug.AddString(CString("Plugin started"));
 
     // Start simulation
-    theApp.m_as.ConnectSim(0);
-    //theApp.m_as.ConnectSim(0, NULL, theApp.m_visMod.hwndParent);
+    //theApp.m_as.ConnectSim(0);
+    theApp.m_as.ConnectSim(0, NULL, theApp.m_visMod->hwndParent);
 	return 0;
 }
 
 int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 {
-	//outputToConsole("rendering Pretty Lights plugin");
+	// theApp.m_dlgDebug.AddString("rendering Pretty Lights plugin");
 
 	int x, y;				//variables to access the sound data arrays 
 	int basscounter = 0;	//a counter to keep track of increasing value of sound data
@@ -153,16 +191,25 @@ int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 		}
 		//if enough bass potential played, redraw the face
 		//if (basscounter > 31)
-		//	outputToConsole("Level 31 base reached");
+		//	theApp.m_dlgDebug.AddString("Level 31 base reached");
 
 
 		//do changes to the visualization once there is enough bass change in the music 
 		//if enough bass potential played, redraw the eyebrows
-		if (basscounter > 71) {
-			outputToConsole("Level 71 base reached");
-			//plv.m_as.SendStringSim("255,0,0,0\n");
+		if (basscounter > 31) {
+            if (!theApp.m_bInBass)
+            {
+                theApp.m_bInBass = true;
+			    theApp.m_dlgDebug.AddString(CString("Level 71 base reached"));
+			    theApp.m_as.SendStringSim(CString("255,0,0,0\n"));
+            }
 		} else {
-			//plv.m_as.SendStringSim("0,0,0,0\n");
+            if (theApp.m_bInBass)
+            {
+                theApp.m_bInBass = false;
+                theApp.m_dlgDebug.AddString(CString("Level 71 exited"));
+			    theApp.m_as.SendStringSim(CString("0,0,0,0\n"));
+            }
 		}
 
 		//some more changes that would occur less often 
@@ -180,6 +227,6 @@ int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 
 void CPrettyLightsWAPApp::Quit(winampVisModule *this_mod)
 {
-	outputToConsole("shutting down Pretty Lights...");
+	theApp.m_dlgDebug.AddString(CString("shutting down Pretty Lights..."));
 	FreeConsole();
 }

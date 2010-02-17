@@ -7,9 +7,11 @@
 #include "resource.h"
 #include "WinAmpAPI.h"
 #include "ArduinoSerial.h"
+#include "DebugConsoleDlg.h"
 
 #define PLUGIN_NAME "Pretty Lights"     // plugin name/title
 #define MOD_NAME    "Pretty Lights 0.01"   // module name
+#define WAP_TIMER   WM_USER + 1
 
 class CPrettyLightsWAPApp : public CWinApp
 {
@@ -24,13 +26,18 @@ public:
     static int Render(winampVisModule *this_mod);
     static void Quit(winampVisModule *this_mod);
 
+    void HighBass();
+    void LowBass();
     void StartSim();
 
-	DECLARE_MESSAGE_MAP()
 
-    winampVisModule m_visMod;
-    winampVisHeader m_visHdr;
+    winampVisModule* m_visMod;
+    winampVisHeader* m_visHdr;
     CArduinoSerial m_as;
 
+    bool m_bInBass;
+    CDebugConsoleDlg m_dlgDebug;
+
+	DECLARE_MESSAGE_MAP()
 private:
 };

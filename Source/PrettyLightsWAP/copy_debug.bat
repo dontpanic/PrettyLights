@@ -2,7 +2,7 @@
 cls
 
 set from="Debug\PrettyLightsWAP.dll"
-set to="C:\Program Files\Winamp\Plugins\vis_prettylights.dll"
+set to="C:\Program Files\Winamp\Plugins\vis_prettylights_debug.dll"
 
 echo.
 echo.
