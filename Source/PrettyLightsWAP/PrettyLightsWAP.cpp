@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 #include "PrettyLightsWAP.h"
+#include "ConfigDlg.h"
+#include "wa_ipc.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -75,29 +77,20 @@ CPrettyLightsWAPApp theApp;
 
 CPrettyLightsWAPApp::CPrettyLightsWAPApp()
 {
-    m_visMod = &mod1; //(winampVisModule*) malloc(sizeof(winampVisModule));
- //   m_visMod->description = PLUGIN_NAME;
-	//m_visMod->hwndParent = NULL;
- //   m_visMod->hDllInstance = NULL;
- //   m_visMod->sRate = 0;
- //   m_visMod->nCh = 0;       
- //   m_visMod->latencyMS = 0;        
- //   m_visMod->delayMS = 40;         
- //   m_visMod->spectrumNCh = 2;     
- //   m_visMod->waveformNCh = 2;
- //   memset(&m_visMod->spectrumData, 0, 2 * 576);
- //   memset(&m_visMod->waveformData, 0, 2 * 576);
- //   m_visMod->Config = &CPrettyLightsWAPApp::Config;
- //   m_visMod->Init = &CPrettyLightsWAPApp::Initalize;
- //   m_visMod->Render = &CPrettyLightsWAPApp::Render;
- //   m_visMod->Quit = &CPrettyLightsWAPApp::Quit;
-
-    m_visHdr = &hdr; //(winampVisHeader*) malloc(sizeof(winampVisHeader));
-    //m_visHdr->version = VIS_HDRVER;
-    //m_visHdr->description = PLUGIN_NAME;
-    //m_visHdr->getModule = &CPrettyLightsWAPApp::GetModule;
-
     m_bInBass = false;
+
+    // Defaults
+    m_bSimEnabled = false;
+    m_bDbgEnabled = false;
+    m_iSimCols = 1;
+    m_iSimRows = 1;
+    m_iLowThresh = 71;
+    m_iMidThresh = 71;
+    m_iHighThresh = 71;
+}
+
+CPrettyLightsWAPApp::~CPrettyLightsWAPApp()
+{
 }
 
 
@@ -111,25 +104,6 @@ BOOL CPrettyLightsWAPApp::InitInstance()
 }
 
 
-//output the given message to the console
-//void outputchar* msg)
-//{
-//  HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-//  DWORD bufflen = strlen(msg);
-//  LPDWORD charsout = 0;
-//  TCHAR buffer[500];
-//  unsigned int i = 0;
-//  for(i = 0; i < bufflen; i++)
-//  {
-//	  buffer[i] = *(msg++);
-//  }
-//
-//  //add newline and increment bufflen
-//  buffer[bufflen++] = '\n';
-//  
-//  WriteConsole(handle,&buffer,bufflen,charsout,NULL);
-//}
-
 winampVisModule* CPrettyLightsWAPApp::GetModule(int module)
 {
 	switch (module)
@@ -139,39 +113,28 @@ winampVisModule* CPrettyLightsWAPApp::GetModule(int module)
     }
 }
 
-//winampVisHeader* CPrettyLightsWAPApp::GetHeader()
-//{
-//    return theApp.m_visHdr;
-//}
-
-void CPrettyLightsWAPApp::Config(winampVisModule* this_mod)
-{
-	theApp.m_dlgDebug.AddString(CString("configure Pretty Lights"));
-}
-
 int CPrettyLightsWAPApp::Initalize(winampVisModule *this_mod)
 {
     AFX_MANAGE_STATE(AfxGetStaticModuleState());
-//	AllocConsole();
-//	theApp.m_dlgDebug.AddString("Starting Pretty Lights plugin");
-        //m_pSimDlg->DoModal();
-    if (!theApp.m_dlgDebug.Create(IDD_DIALOG2, CWnd::FromHandle(mod1.hwndParent)))
-    {
-        AfxMessageBox(_T("Failed to load simulator window"));
-        return false;
-    }
-
-    theApp.m_dlgDebug.AddString(CString("Plugin started"));
-
-    // Start simulation
-    //theApp.m_as.ConnectSim(0);
-    theApp.m_as.ConnectSim(0, NULL, theApp.m_visMod->hwndParent);
+    theApp.Initialize(this_mod->hwndParent, this_mod->hDllInstance, true); 
 	return 0;
 }
 
+void CPrettyLightsWAPApp::Config(winampVisModule* this_mod)
+{    
+    AFX_MANAGE_STATE(AfxGetStaticModuleState());
+    theApp.Initialize(this_mod->hwndParent, this_mod->hDllInstance, false);
+    theApp.Config();
+}
+
+void CPrettyLightsWAPApp::Quit(winampVisModule *this_mod)
+{
+	theApp.Quit();
+}
+
+
 int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 {
-	// theApp.m_dlgDebug.AddString("rendering Pretty Lights plugin");
 
 	int x, y;				//variables to access the sound data arrays 
 	int basscounter = 0;	//a counter to keep track of increasing value of sound data
@@ -191,7 +154,7 @@ int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 		}
 		//if enough bass potential played, redraw the face
 		//if (basscounter > 31)
-		//	theApp.m_dlgDebug.AddString("Level 31 base reached");
+		//	theApp.m_pDebugDlg->AddString("Level 31 base reached");
 
 
 		//do changes to the visualization once there is enough bass change in the music 
@@ -200,15 +163,15 @@ int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
             if (!theApp.m_bInBass)
             {
                 theApp.m_bInBass = true;
-			    theApp.m_dlgDebug.AddString(CString("Level 71 base reached"));
-			    theApp.m_as.SendStringSim(CString("255,0,0,0\n"));
+			    theApp.m_pDebugDlg->AddString(CString("Level 71 base reached"));
+			    //theApp.m_as.SendStringSim(CString("255,0,0,0\n"));
             }
 		} else {
             if (theApp.m_bInBass)
             {
                 theApp.m_bInBass = false;
-                theApp.m_dlgDebug.AddString(CString("Level 71 exited"));
-			    theApp.m_as.SendStringSim(CString("0,0,0,0\n"));
+                theApp.m_pDebugDlg->AddString(CString("Level 71 exited"));
+			    //theApp.m_as.SendStringSim(CString("0,0,0,0\n"));
             }
 		}
 
@@ -225,8 +188,158 @@ int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 	return 0;
 }
 
-void CPrettyLightsWAPApp::Quit(winampVisModule *this_mod)
+
+
+
+//
+//
+// Start non-WinAmp functions
+//
+//
+
+void CPrettyLightsWAPApp::Initialize(HWND hwndWinamp, HINSTANCE hDllInstance, bool bShowDialogs)
+{    
+    m_hwndWinamp = hwndWinamp;
+    m_hDllInstance = hDllInstance;
+       
+    LoadConfig();
+
+    InitializeDialogs(bShowDialogs);
+
+    m_pDebugDlg->AddString("Plugin started");
+}
+
+void CPrettyLightsWAPApp::Config()
 {
-	theApp.m_dlgDebug.AddString(CString("shutting down Pretty Lights..."));
-	FreeConsole();
+    CConfigDlg dlg(&theApp);
+    dlg.DoModal();
+    WriteConfig();
+}
+
+void CPrettyLightsWAPApp::Quit()
+{
+    m_pDebugDlg->AddString("Closing plugin");
+    WriteConfig();
+}
+
+void CPrettyLightsWAPApp::LoadConfig()
+{
+    CStdioFile ioFile;
+
+    // Open file
+    CString strIniFile = GetIniFile();
+    if (!ioFile.Open(strIniFile, CFile::modeRead))
+    {
+        TRACE("Unable to open configuration file.\n");
+        return;
+    }
+
+    // Read and set values
+    CString strLine;
+    while (ioFile.ReadString(strLine))
+    {
+        int iTok = 0;        
+        CString strLeft, strRight;
+
+        strLine = strLine.Trim();
+
+        if (strLine.IsEmpty() || strLine.GetAt(0) == '#') 
+            continue;
+
+        strLeft = strLine.Tokenize("=", iTok);
+        strLeft = strLeft.Trim();
+        strLeft = strLeft.MakeLower();
+
+        strRight = strLine.Tokenize("", iTok);
+        strRight = strRight.Trim();
+        strRight = strRight.MakeLower();
+
+        if (strLeft == "simulation")
+            m_bSimEnabled = (strRight == "true");
+        else if (strLeft == "debug")
+            m_bDbgEnabled = (strRight == "true");
+        else if (strLeft == "thresh_low")
+            m_iLowThresh = atoi(strRight);
+        else if (strLeft == "thresh_mid")
+            m_iMidThresh = atoi(strRight);
+        else if (strLeft == "thresh_high")
+            m_iHighThresh = atoi(strRight);
+        else if (strLeft == "sim_rows")
+            m_iSimRows = atoi(strRight);
+        else if (strLeft == "sim_cols")
+            m_iSimCols = atoi(strRight);
+        else
+            TRACE("Unknown configuration variable: %s\n", strLeft);
+    }
+
+    ioFile.Close();
+
+    TRACE("Configuration loaded: %s\n", strIniFile);
+}
+
+void CPrettyLightsWAPApp::WriteConfig()
+{
+    CStdioFile ioFile;
+
+    // Open file
+    CString strIniFile = GetIniFile();
+    if (!ioFile.Open(strIniFile, CFile::modeCreate | CFile::modeWrite))
+    {
+        TRACE("Unable to save configuration file.\n");
+        ASSERT(FALSE);
+        return;
+    }
+
+    CString strLine;
+
+    strLine.Format(
+        "simulation = %s\n"
+        "debug = %s\n"
+        "thresh_low = %d\n"
+        "thresh_mid = %d\n"
+        "thresh_high = %d\n"
+        "sim_rows = %d\n"
+        "sim_cols = %d\n",
+        m_bSimEnabled ? "true" : "false", m_bDbgEnabled ? "true" : "false",
+        m_iLowThresh, m_iMidThresh, m_iHighThresh, m_iSimRows, m_iSimCols);
+
+    ioFile.WriteString(strLine);
+
+    ioFile.Close();
+    
+    TRACE("Configuration saved: %s.\n", strIniFile);
+}
+
+void CPrettyLightsWAPApp::InitializeDialogs(bool bShowDialogs)
+{
+    m_pSimDlg = new CLEDSimulatorDlg(m_iSimRows, m_iSimCols);
+    if (m_bSimEnabled && bShowDialogs)
+    {        
+        if (!m_pSimDlg->Create(m_pSimDlg->IDD, CWnd::FromHandle(m_hwndWinamp)))
+        {
+            AfxMessageBox(_T("Failed to load simulator window"));
+        }
+    }
+
+    m_pDebugDlg = new CDebugConsoleDlg();
+    if (m_bDbgEnabled && bShowDialogs)
+    {        
+        if (!m_pDebugDlg->Create(m_pDebugDlg->IDD, CWnd::FromHandle(m_hwndWinamp)))
+        {
+            AfxMessageBox(_T("Failed to load debug window"));
+        }
+    }
+}
+
+CString CPrettyLightsWAPApp::GetIniFile()
+{
+    char* fileName = (char*) SendMessage(m_hwndWinamp, 
+                                         WM_WA_IPC, 
+                                         0, 
+                                         IPC_GETPLUGINDIRECTORY);
+    
+    TRACE("String length: %d\n", strlen(fileName));
+    CString strFile(fileName);
+    strFile.Append("\\vis_prettylights.ini");
+    return strFile;
 }

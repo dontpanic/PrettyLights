@@ -24,10 +24,6 @@ CLEDSimulatorDlg::CLEDSimulatorDlg(int iNumRows, int iNumCols, CWnd* pParent /*=
     }
 }
 
-CLEDSimulatorDlg::~CLEDSimulatorDlg()
-{
-}
-
 void CLEDSimulatorDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);

@@ -19,9 +19,8 @@ class CLEDSimulatorDlg : public CDialog
 public:
 
 	CLEDSimulatorDlg(int iNumRows, int iNumCols, CWnd* pParent = NULL);
-	virtual ~CLEDSimulatorDlg();
 	bool Parse(const CString& strData);
-	enum { IDD = IDD_DIALOG1 };
+	enum { IDD = IDD_SIMULATION };
 
 protected:
 

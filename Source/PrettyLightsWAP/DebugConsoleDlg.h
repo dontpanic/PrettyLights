@@ -11,14 +11,16 @@ class CDebugConsoleDlg : public CDialog
 public:
 	CDebugConsoleDlg(CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDebugConsoleDlg();
+    virtual BOOL OnInitDialog();
 
-// Dialog Data
-	enum { IDD = IDD_DIALOG2 };
+	enum { IDD = IDD_CONSOLE };
     void AddString(const CString& str);
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     CEdit m_dlgEditBox;
+    CString m_strData;
+    bool m_bDialog;
 
 	DECLARE_MESSAGE_MAP()
 };

@@ -8,14 +8,14 @@ CArduinoSerial::CArduinoSerial(void)
 {
     m_ftDev = NULL;
     m_strASError = "";
-    m_pSimDlg = NULL;
+    //m_pSimDlg = NULL;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Destruct
 CArduinoSerial::~CArduinoSerial(void)
 {
-    DisconnectSim();
+    //DisconnectSim();
     
     if (m_ftDev != NULL)
     {
@@ -148,32 +148,31 @@ bool CArduinoSerial::Connect(int iDevice, AS_LISTENER fxListener, HWND hParent)
 
 ///////////////////////////////////////////////////////////////////////////////
 // ConnectSim
-bool CArduinoSerial::ConnectSim(int iDevice, AS_LISTENER fxListener, HWND hParent)
-{
-    AFX_MANAGE_STATE(AfxGetStaticModuleState());
-    UNUSED(iDevice);
-    UNUSED(fxListener);
-    UNUSED(hParent);
-        
-    // Create simulation dialog
-    if (m_pSimDlg == NULL)
-    {
-        m_pSimDlg = new CLEDSimulatorDlg(1, 1);
-        
-        //m_pSimDlg->DoModal();
-        if (!m_pSimDlg->Create(IDD_DIALOG1, CWnd::FromHandle(hParent)))
-        {
-            AfxMessageBox(_T("Failed to load simulator window"));
-            return false;
-        }
-        
-        // Show dialog
-        m_pSimDlg->ShowWindow(SW_SHOW);
-    }   
-    
-    
-    return true;
-}
+//bool CArduinoSerial::ConnectSim(int iDevice, AS_LISTENER fxListener, HWND hParent)
+//{
+//    AFX_MANAGE_STATE(AfxGetStaticModuleState());
+//    UNUSED(iDevice);
+//    UNUSED(fxListener);
+//    UNUSED(hParent);
+//        
+//    // Create simulation dialog
+//    if (m_pSimDlg == NULL)
+//    {
+//        m_pSimDlg = new CLEDSimulatorDlg(1, 1);
+//        
+//        if (!m_pSimDlg->Create(IDD_SIMULATION, CWnd::FromHandle(hParent)))
+//        {
+//            AfxMessageBox(_T("Failed to load simulator window"));
+//            return false;
+//        }
+//        
+//        // Show dialog
+//        m_pSimDlg->ShowWindow(SW_SHOW);
+//    }   
+//    
+//    
+//    return true;
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Disconnect
@@ -215,21 +214,21 @@ bool CArduinoSerial::Disconnect()
 
 ///////////////////////////////////////////////////////////////////////////////
 // DisconnectSim
-bool CArduinoSerial::DisconnectSim()
-{    
-    if (m_pSimDlg != NULL)
-    {
-        if (!m_pSimDlg->DestroyWindow())
-        {
-            TRACE(_T("Error destroying simulation window\n"));
-        }
-        
-        delete m_pSimDlg;
-        m_pSimDlg = NULL;
-    }
-    
-    return true;
-}
+//bool CArduinoSerial::DisconnectSim()
+//{    
+//    if (m_pSimDlg != NULL)
+//    {
+//        if (!m_pSimDlg->DestroyWindow())
+//        {
+//            TRACE(_T("Error destroying simulation window\n"));
+//        }
+//        
+//        delete m_pSimDlg;
+//        m_pSimDlg = NULL;
+//    }
+//    
+//    return true;
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Disconnect
@@ -307,12 +306,12 @@ bool CArduinoSerial::SendString(const CString& strData)
 
 ///////////////////////////////////////////////////////////////////////////////
 // SendStringSim
-bool CArduinoSerial::SendStringSim(const CString& strData)
-{
-    ASSERT(m_pSimDlg != NULL);
-    m_pSimDlg->Parse(strData);
-    return true;
-}
+//bool CArduinoSerial::SendStringSim(const CString& strData)
+//{
+//    ASSERT(m_pSimDlg != NULL);
+//    m_pSimDlg->Parse(strData);
+//    return true;
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 // GetError
