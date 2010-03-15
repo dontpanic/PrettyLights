@@ -41,4 +41,7 @@ protected:
     CEdit m_dlgLowEdit;
     CEdit m_dlgMidEdit;
     CEdit m_dlgHighEdit;
+public:
+	afx_msg void OnClicked_MidSlider(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnClicked_HighSlider(NMHDR *pNMHDR, LRESULT *pResult);
 };

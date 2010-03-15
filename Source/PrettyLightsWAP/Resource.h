@@ -3,6 +3,9 @@
 // Used by PrettyLightsWAP.rc
 //
 
+//#define IDC_PGR_BASS                    1002
+//#define IDC_PGR_MID                     1000
+//#define IDC_PGR_HIGH                    1001
 #define IDC_EDT_CNSL                    300
 #define IDC_CHK_ENABLESIM               301
 #define IDC_EDT_SIMY                    302

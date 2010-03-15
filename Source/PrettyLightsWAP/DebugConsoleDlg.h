@@ -22,5 +22,9 @@ protected:
     CString m_strData;
     bool m_bDialog;
 
+	//CProgressCtrl m_bass;
+	//CProgressCtrl m_mid;
+	//CProgressCtrl m_high;
+
 	DECLARE_MESSAGE_MAP()
 };

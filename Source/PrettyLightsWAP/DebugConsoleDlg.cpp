@@ -24,6 +24,9 @@ void CDebugConsoleDlg::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
     DDX_Control(pDX, IDC_EDT_CNSL, m_dlgEditBox);
+	//DDX_Control(pDX, IDC_PGR_BASS, m_bass);
+	//DDX_Control(pDX, IDC_PGR_MID, m_mid);
+	//DDX_Control(pDX, IDC_PGR_HIGH, m_high);
 }
 
 

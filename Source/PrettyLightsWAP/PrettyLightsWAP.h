@@ -56,6 +56,10 @@ public:
     int     m_iSimRows;
     int     m_iSimCols;
 
+	int m_iLowBounds[2];
+	int m_iMidBounds[2];
+	int m_iHighBounds[2];
+
 	DECLARE_MESSAGE_MAP()
 private:
 };

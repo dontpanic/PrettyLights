@@ -142,6 +142,15 @@ bool CLEDSimulatorDlg::Parse(const CString& strData)
     strTemp = strData.Tokenize(",", iTok);
     I = atoi(strTemp);
 
+	double dBrtScaler =(double)I / 255.0;
+
+	R *= dBrtScaler;
+	if (R > 255) R = 255;
+	G *= dBrtScaler;
+	if (G > 255) G = 255;
+	B *= dBrtScaler;
+	if (B > 255) B = 255;
+
     m_vecLedColors[m_iTestIndx++] = RGB(R, G, B);
 
     if (m_iTestIndx >= m_iRows * m_iCols)

@@ -36,6 +36,8 @@ BEGIN_MESSAGE_MAP(CConfigDlg, CDialog)
     ON_BN_CLICKED(IDC_CHK_ENABLESIM, &CConfigDlg::OnClicked_EnableSimChk)
     ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLD_THLOW, &CConfigDlg::OnClicked_LowSlider)
     ON_WM_DESTROY()
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLD_THMID, &CConfigDlg::OnClicked_MidSlider)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLD_THHI, &CConfigDlg::OnClicked_HighSlider)
 END_MESSAGE_MAP()
 
 BOOL CConfigDlg::OnInitDialog()
@@ -44,9 +46,9 @@ BOOL CConfigDlg::OnInitDialog()
     CString strTemp;
 
     // Setup sliders
-    m_dlgLowSlider.SetRange(50, 125, 1);    
-    m_dlgMidSlider.SetRange(50, 125, 1);    
-    m_dlgHighSlider.SetRange(50, 125, 1);
+    m_dlgLowSlider.SetRange(m_pApp->m_iLowBounds[0], m_pApp->m_iLowBounds[1], 1);    
+    m_dlgMidSlider.SetRange(m_pApp->m_iMidBounds[0], m_pApp->m_iMidBounds[1], 1);    
+    m_dlgHighSlider.SetRange(m_pApp->m_iHighBounds[0], m_pApp->m_iHighBounds[1], 1);
 
     // Populate data fields
     m_dlgEnableSimChk.SetCheck(m_pApp->m_bSimEnabled ? BST_CHECKED : BST_UNCHECKED);
@@ -99,6 +101,15 @@ void CConfigDlg::OnDestroy()
     m_dlgSimColsEdt.GetWindowText(strTemp);
     m_pApp->m_iSimCols = atoi(strTemp);
 
+	m_dlgLowEdit.GetWindowText(strTemp);
+	m_pApp->m_iLowThresh = atoi(strTemp);
+
+	m_dlgMidEdit.GetWindowText(strTemp);
+	m_pApp->m_iMidThresh = atoi(strTemp);
+
+	m_dlgHighEdit.GetWindowText(strTemp);
+	m_pApp->m_iHighThresh = atoi(strTemp);
+
     CDialog::OnDestroy();
 }
 
@@ -127,3 +138,25 @@ void CConfigDlg::OnClicked_LowSlider(NMHDR *pNMHDR, LRESULT *pResult)
     *pResult = 0;
 }
 
+
+void CConfigDlg::OnClicked_MidSlider(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+    
+    CString strTemp;
+    strTemp.Format("%d", m_dlgMidSlider.GetPos());
+    m_dlgMidEdit.SetWindowText(strTemp);
+
+    *pResult = 0;
+}
+
+void CConfigDlg::OnClicked_HighSlider(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+    
+    CString strTemp;
+    strTemp.Format("%d", m_dlgHighSlider.GetPos());
+    m_dlgHighEdit.SetWindowText(strTemp);
+
+    *pResult = 0;
+}

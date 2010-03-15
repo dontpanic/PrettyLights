@@ -5,6 +5,7 @@
 #include "PrettyLightsWAP.h"
 #include "ConfigDlg.h"
 #include "wa_ipc.h"
+#include "math.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -53,10 +54,10 @@ winampVisModule mod1 =
 	NULL,	// hwndParent
 	NULL,	// hDllInstance
 	0,		// sRate
-	0,		// nCh
+	2,		// nCh
 	0,		// latencyMS - delay between audio & video
-	40,		// delayMS - winamp will make sure that at least this much time passes per frame.
-	0,		// spectrumNch
+	70,		// delayMS - winamp will make sure that at least this much time passes per frame.
+	2,		// spectrumNch
 	2,		// waveformNch
 	{ 0, },	// spectrumData
 	{ 0, },	// waveformData
@@ -84,9 +85,16 @@ CPrettyLightsWAPApp::CPrettyLightsWAPApp()
     m_bDbgEnabled = false;
     m_iSimCols = 1;
     m_iSimRows = 1;
-    m_iLowThresh = 71;
-    m_iMidThresh = 71;
-    m_iHighThresh = 71;
+    m_iLowThresh = 3250;
+    m_iMidThresh = 2000;
+    m_iHighThresh = 150; 
+
+	m_iLowBounds[0] = 100;
+	m_iLowBounds[1] = 5000;
+	m_iMidBounds[0] = 100;
+	m_iMidBounds[1] = 5000;
+	m_iHighBounds[0] = 100;
+	m_iHighBounds[1] = 500;
 }
 
 CPrettyLightsWAPApp::~CPrettyLightsWAPApp()
@@ -135,8 +143,8 @@ void CPrettyLightsWAPApp::Quit(winampVisModule *this_mod)
 
 int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 {
-
-	int x, y;				//variables to access the sound data arrays 
+	//waveform data pass
+	/*int x, y;				//variables to access the sound data arrays 
 	int basscounter = 0;	//a counter to keep track of increasing value of sound data
 	int wavegap = 0;		//difference between previous sound and current 
 	for (y = 0; y < 2; y ++)	
@@ -152,38 +160,135 @@ int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 			if (wavegap > 383)
 				basscounter++;
 		}
-		//if enough bass potential played, redraw the face
-		//if (basscounter > 31)
-		//	theApp.m_pDebugDlg->AddString("Level 31 base reached");
 
 
 		//do changes to the visualization once there is enough bass change in the music 
-		//if enough bass potential played, redraw the eyebrows
 		if (basscounter > 31) {
             if (!theApp.m_bInBass)
             {
                 theApp.m_bInBass = true;
-			    theApp.m_pDebugDlg->AddString(CString("Level 71 base reached"));
-			    //theApp.m_as.SendStringSim(CString("255,0,0,0\n"));
+			    theApp.m_pDebugDlg->AddString(CString("Level 51 base reached"));
             }
 		} else {
             if (theApp.m_bInBass)
             {
                 theApp.m_bInBass = false;
-                theApp.m_pDebugDlg->AddString(CString("Level 71 exited"));
-			    //theApp.m_as.SendStringSim(CString("0,0,0,0\n"));
+                theApp.m_pDebugDlg->AddString(CString("Level 51 exited"));
             }
 		}
+	}
 
-		//some more changes that would occur less often 
-		if (y) {
-			//if VU meter (y=1)
-			//do changes 
-		}else {
-			//if not
-			//do other changes
+	//send waveform data
+	if(theApp.m_bInBass){
+		//theApp.m_as.SendString(CString("255,0,0,0\n"));
+		//theApp.m_pSimDlg->Parse(CString("255,0,0,0\n"));
+		//theApp.m_pSimDlg->Parse(CString("255,0,0,0\n"));
+	}else{
+		//theApp.m_as.SendString(CString("0,0,0,0\n"));
+		//theApp.m_pSimDlg->Parse(CString("0,0,0,0\n"));
+		//theApp.m_pSimDlg->Parse(CString("0,0,0,0\n"));
+	}*/
+
+	//spectrum data pass
+	//int i;
+	//int numChannels = 8;
+	//int specInterval = 576 / numChannels;
+	//int startInt = specInterval;
+	int specAmps = 0;
+	int specThreshold = 10;
+	int bassAmps = 0;
+	int midAmps = 0;
+	int highAmps = 0;
+
+	int bassChannelCutoff = 2 * (576/8);
+	int midChannelCutoff = (576/2);
+
+	for (int x = 0; x < bassChannelCutoff; x ++)				//go through each sample 
+	{	
+			bassAmps+=this_mod->spectrumData[0][x];
+	}
+
+	//for (int x = bassChannelCutoff; x < 576; x ++)				//go through each sample 
+	//{	
+			//midAmps+=this_mod->spectrumData[0][x];
+	//}
+
+	for (int x = 0; x < midChannelCutoff; x ++)				//go through each sample 
+	{	
+			midAmps+=this_mod->spectrumData[1][x];
+	}
+
+	for (int x = midChannelCutoff; x < 576; x++)				//go through each sample 
+	{	
+			highAmps+=this_mod->spectrumData[1][x];
+	}
+
+
+	//output to debug console
+	//CString strText;
+	//strText.Format("High channel[] value: %d", Ibyte);
+	//theApp.m_pDebugDlg->AddString(strText);
+
+	int i;
+	for(i=0;i < 2;i++){
+		if(bassAmps > theApp.m_iLowThresh){
+
+			double I = (double)(bassAmps - theApp.m_iLowThresh) / 
+				(278.34 * (pow((double)theApp.m_iLowThresh, .38)) - theApp.m_iLowThresh);
+
+			I *= 1.333;
+
+			int Ibyte = I * 255.0;
+			if (Ibyte > 255) Ibyte = 255;
+
+			CString str;
+			str.Format("%d, %d, %d, %d\n", 255, 0, 0, Ibyte);
+			theApp.m_pSimDlg->Parse(str);
+		}else{
+			theApp.m_pSimDlg->Parse(CString("255,255,255,0\n"));
 		}
 	}
+
+
+	//send spectrum data
+	for(i=0;i < 2;i++){
+		if(midAmps > theApp.m_iMidThresh){
+
+			double I = (double)(midAmps - theApp.m_iMidThresh) / 
+				(278.34 * (pow((double)theApp.m_iMidThresh, .38)) - theApp.m_iMidThresh);
+
+			I *= 1.333;
+
+			int Ibyte = I * 255.0;
+			if (Ibyte > 255) Ibyte = 255;
+
+			CString str;
+			str.Format("%d, %d, %d, %d\n", 0, 255, 0, Ibyte);
+			theApp.m_pSimDlg->Parse(str);
+		}else{
+			theApp.m_pSimDlg->Parse(CString("255,255,255,0\n"));
+		}
+	}
+
+	for(i=0;i < 2;i++){
+		if(highAmps > theApp.m_iHighThresh){
+
+			double I = (double)(highAmps - theApp.m_iHighThresh) / 
+				(theApp.m_iHighBounds[1] - theApp.m_iHighThresh);
+
+			I *= 1.333;
+
+			int Ibyte = I * 255.0;
+			if (Ibyte > 255) Ibyte = 255;
+
+			CString str;
+			str.Format("%d, %d, %d, %d\n", 0, 255, 255, Ibyte);
+			theApp.m_pSimDlg->Parse(str);
+		}else{
+			theApp.m_pSimDlg->Parse(CString("255,255,255,0\n"));
+		}
+	}
+	
 
 	return 0;
 }
