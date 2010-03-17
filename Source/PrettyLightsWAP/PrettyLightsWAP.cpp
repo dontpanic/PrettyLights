@@ -85,15 +85,19 @@ CPrettyLightsWAPApp::CPrettyLightsWAPApp()
     m_bDbgEnabled = false;
     m_iSimCols = 1;
     m_iSimRows = 1;
-    m_iLowThresh = 3250;
-    m_iMidThresh = 2000;
-    m_iHighThresh = 150; 
+    m_iDevice = -1;
+    m_iBassThresh = 1000;
+    m_iLowThresh = 500;
+    m_iMidThresh = 1500;
+    m_iHighThresh = 50; 
 
+    m_iBassBounds[0] = 100;
+    m_iBassBounds[1] = 5000;
 	m_iLowBounds[0] = 100;
 	m_iLowBounds[1] = 5000;
 	m_iMidBounds[0] = 100;
 	m_iMidBounds[1] = 5000;
-	m_iHighBounds[0] = 100;
+	m_iHighBounds[0] = 10;
 	m_iHighBounds[1] = 500;
 }
 
@@ -143,64 +147,14 @@ void CPrettyLightsWAPApp::Quit(winampVisModule *this_mod)
 
 int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 {
-	//waveform data pass
-	/*int x, y;				//variables to access the sound data arrays 
-	int basscounter = 0;	//a counter to keep track of increasing value of sound data
-	int wavegap = 0;		//difference between previous sound and current 
-	for (y = 0; y < 2; y ++)	
-	{							
-		int last=this_mod->waveformData[y][0];	//gets the first sound sample
-		for (x = 1; x < 576; x ++)				//go through each sample 
-		{										
-			last = this_mod->waveformData[y][x];	//update sound sample 
-			//calculate gap between previous sound sample and current	
-			wavegap = abs(this_mod->waveformData[0][x]^128)+abs(this_mod->waveformData[1][x]^128)+1;
-			//if the difference between the last played wave and current wave is big enough
-			//increment basscounter
-			if (wavegap > 383)
-				basscounter++;
-		}
-
-
-		//do changes to the visualization once there is enough bass change in the music 
-		if (basscounter > 31) {
-            if (!theApp.m_bInBass)
-            {
-                theApp.m_bInBass = true;
-			    theApp.m_pDebugDlg->AddString(CString("Level 51 base reached"));
-            }
-		} else {
-            if (theApp.m_bInBass)
-            {
-                theApp.m_bInBass = false;
-                theApp.m_pDebugDlg->AddString(CString("Level 51 exited"));
-            }
-		}
-	}
-
-	//send waveform data
-	if(theApp.m_bInBass){
-		//theApp.m_as.SendString(CString("255,0,0,0\n"));
-		//theApp.m_pSimDlg->Parse(CString("255,0,0,0\n"));
-		//theApp.m_pSimDlg->Parse(CString("255,0,0,0\n"));
-	}else{
-		//theApp.m_as.SendString(CString("0,0,0,0\n"));
-		//theApp.m_pSimDlg->Parse(CString("0,0,0,0\n"));
-		//theApp.m_pSimDlg->Parse(CString("0,0,0,0\n"));
-	}*/
 
 	//spectrum data pass
-	//int i;
-	//int numChannels = 8;
-	//int specInterval = 576 / numChannels;
-	//int startInt = specInterval;
-	int specAmps = 0;
-	int specThreshold = 10;
 	int bassAmps = 0;
+    int lowAmps = 0;
 	int midAmps = 0;
 	int highAmps = 0;
 
-	int bassChannelCutoff = 2 * (576/8);
+	int bassChannelCutoff = (576/8);
 	int midChannelCutoff = (576/2);
 
 	for (int x = 0; x < bassChannelCutoff; x ++)				//go through each sample 
@@ -208,10 +162,10 @@ int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 			bassAmps+=this_mod->spectrumData[0][x];
 	}
 
-	//for (int x = bassChannelCutoff; x < 576; x ++)				//go through each sample 
-	//{	
-			//midAmps+=this_mod->spectrumData[0][x];
-	//}
+	for (int x = bassChannelCutoff; x < 576; x ++)				//go through each sample 
+	{	
+			lowAmps+=this_mod->spectrumData[0][x];
+	}
 
 	for (int x = 0; x < midChannelCutoff; x ++)				//go through each sample 
 	{	
@@ -229,71 +183,44 @@ int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 	//strText.Format("High channel[] value: %d", Ibyte);
 	//theApp.m_pDebugDlg->AddString(strText);
 
-	int i;
-	for(i=0;i < 2;i++){
-		if(bassAmps > theApp.m_iLowThresh){
+    //send data to the Lights
 
-			double I = (double)(bassAmps - theApp.m_iLowThresh) / 
-				(278.34 * (pow((double)theApp.m_iLowThresh, .38)) - theApp.m_iLowThresh);
-
-			I *= 1.333;
-
-			int Ibyte = I * 255.0;
-			if (Ibyte > 255) Ibyte = 255;
-
-			CString str;
-			str.Format("%d, %d, %d, %d\n", 255, 0, 0, Ibyte);
-			theApp.m_pSimDlg->Parse(str);
-		}else{
-			theApp.m_pSimDlg->Parse(CString("255,255,255,0\n"));
-		}
+    //bass
+	for(int i = 0; i < 1; i++)
+    {
+        theApp.SendBytes(255, 0, 0, theApp.GetIntensity(bassAmps, theApp.m_iBassThresh));
 	}
 
-
-	//send spectrum data
-	for(i=0;i < 2;i++){
-		if(midAmps > theApp.m_iMidThresh){
-
-			double I = (double)(midAmps - theApp.m_iMidThresh) / 
-				(278.34 * (pow((double)theApp.m_iMidThresh, .38)) - theApp.m_iMidThresh);
-
-			I *= 1.333;
-
-			int Ibyte = I * 255.0;
-			if (Ibyte > 255) Ibyte = 255;
-
-			CString str;
-			str.Format("%d, %d, %d, %d\n", 0, 255, 0, Ibyte);
-			theApp.m_pSimDlg->Parse(str);
-		}else{
-			theApp.m_pSimDlg->Parse(CString("255,255,255,0\n"));
-		}
+    //low
+    for(int i = 0; i < 1; i++)
+    {
+        theApp.SendBytes(255, 0, 255, theApp.GetIntensity(lowAmps, theApp.m_iLowThresh));
 	}
 
-	for(i=0;i < 2;i++){
-		if(highAmps > theApp.m_iHighThresh){
-
-			double I = (double)(highAmps - theApp.m_iHighThresh) / 
-				(theApp.m_iHighBounds[1] - theApp.m_iHighThresh);
-
-			I *= 1.333;
-
-			int Ibyte = I * 255.0;
-			if (Ibyte > 255) Ibyte = 255;
-
-			CString str;
-			str.Format("%d, %d, %d, %d\n", 0, 255, 255, Ibyte);
-			theApp.m_pSimDlg->Parse(str);
-		}else{
-			theApp.m_pSimDlg->Parse(CString("255,255,255,0\n"));
-		}
+    //mid
+	for(int i = 0; i < 1; i++)
+    {
+        theApp.SendBytes(255, 255, 0, theApp.GetIntensity(midAmps, theApp.m_iMidThresh));
+	}
+    
+    // high
+	for(int i = 0; i < 1; i++)
+    {
+        theApp.SendBytes(0, 255, 255, theApp.GetIntensity(highAmps, theApp.m_iHighThresh));
 	}
 	
 
 	return 0;
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
+// Listener
+void Listener(unsigned char err, HWND hParent)
+{
+    CString strErr;
+    strErr.Format("Arduino ErrorL %hu", err);
+    theApp.m_pDebugDlg->AddString(strErr);
+} 
 
 
 //
@@ -304,14 +231,28 @@ int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 
 void CPrettyLightsWAPApp::Initialize(HWND hwndWinamp, HINSTANCE hDllInstance, bool bShowDialogs)
 {    
+
     m_hwndWinamp = hwndWinamp;
     m_hDllInstance = hDllInstance;
        
     LoadConfig();
-
     InitializeDialogs(bShowDialogs);
-
     m_pDebugDlg->AddString("Plugin started");
+
+    // Connect to Arduino
+    if (m_iDevice >= 0)
+    {
+        if (!m_as.Connect(m_iDevice, Listener, m_hwndWinamp))
+        {
+            m_pDebugDlg->AddString("Error while connecting to Arduino");
+        }
+        else
+        {
+            m_pDebugDlg->AddString("Connected to Arduino successfully");
+        }
+    }       
+    else
+        m_pDebugDlg->AddString("Not connected to Arduino.");
 }
 
 void CPrettyLightsWAPApp::Config()
@@ -324,6 +265,7 @@ void CPrettyLightsWAPApp::Config()
 void CPrettyLightsWAPApp::Quit()
 {
     m_pDebugDlg->AddString("Closing plugin");
+    m_as.Disconnect();
     WriteConfig();
 }
 
@@ -363,6 +305,10 @@ void CPrettyLightsWAPApp::LoadConfig()
             m_bSimEnabled = (strRight == "true");
         else if (strLeft == "debug")
             m_bDbgEnabled = (strRight == "true");
+        else if (strLeft == "device")
+            m_iDevice = atoi(strRight);
+        else if (strLeft == "thresh_bass")
+            m_iBassThresh = atoi(strRight);
         else if (strLeft == "thresh_low")
             m_iLowThresh = atoi(strRight);
         else if (strLeft == "thresh_mid")
@@ -400,13 +346,15 @@ void CPrettyLightsWAPApp::WriteConfig()
     strLine.Format(
         "simulation = %s\n"
         "debug = %s\n"
+        "device = %d\n"
+        "thresh_bass = %d\n"
         "thresh_low = %d\n"
         "thresh_mid = %d\n"
         "thresh_high = %d\n"
         "sim_rows = %d\n"
         "sim_cols = %d\n",
-        m_bSimEnabled ? "true" : "false", m_bDbgEnabled ? "true" : "false",
-        m_iLowThresh, m_iMidThresh, m_iHighThresh, m_iSimRows, m_iSimCols);
+        m_bSimEnabled ? "true" : "false", m_bDbgEnabled ? "true" : "false", m_iDevice,
+        m_iBassThresh, m_iLowThresh, m_iMidThresh, m_iHighThresh, m_iSimRows, m_iSimCols);
 
     ioFile.WriteString(strLine);
 
@@ -442,9 +390,42 @@ CString CPrettyLightsWAPApp::GetIniFile()
                                          WM_WA_IPC, 
                                          0, 
                                          IPC_GETPLUGINDIRECTORY);
-    
-    TRACE("String length: %d\n", strlen(fileName));
+
     CString strFile(fileName);
     strFile.Append("\\vis_prettylights.ini");
     return strFile;
+}
+
+int CPrettyLightsWAPApp::GetIntensity(int iValue, int iThresh)
+{
+    int i = 0;
+
+    if(iValue > iThresh)
+    {
+        double dIntensity = 
+            (double)(iValue - iThresh) / (278.34 * (pow((double)iValue, .38)) - iThresh);
+
+	    dIntensity *= 1.333;
+
+	    i = dIntensity * 255.0;
+	    if (i > 255) i = 255;
+    }
+
+    return i;
+}
+
+void CPrettyLightsWAPApp::SendBytes(int r, int g, int b, int i)
+{
+    if (m_bSimEnabled)
+    {
+        theApp.m_pSimDlg->Parse(r, g, b, i);
+    }
+
+    if (m_iDevice != -1)
+    {
+        //CString str;
+        //str.Format("Sent data: (%d, %d, %d, %d)", r, g, b, i);
+        //theApp.m_pDebugDlg->AddString(str);
+        theApp.m_as.SendLEDValue(r, g, b, i);
+    }
 }

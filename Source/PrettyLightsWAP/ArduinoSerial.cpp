@@ -59,9 +59,6 @@ UINT ThreadFunc(LPVOID pData)
 {
     struct SThreadData* pstThreadData = (struct SThreadData*)pData;
     
-    // One and only CString
-    CString strLine = _T("");
-
     // Loop until thread is cancelled.
     while (!*pstThreadData->pbStopThread)
     {       
@@ -88,15 +85,9 @@ UINT ThreadFunc(LPVOID pData)
                     break;
                 }
 
-                dwBytesRecvdTotal += dwBytesRecvd;            
-                strLine.AppendChar(byte);
-
-                if (byte == '\n')
-                {
-                    // Reached the end of a string, call callback, continue reading
-                    pstThreadData->fxCallback(strLine, pstThreadData->hParent);
-                    strLine = "";
-                }
+                // Send data to handler
+                pstThreadData->fxCallback(byte, pstThreadData->hParent);
+                dwBytesRecvdTotal++;
             }            
         }
 
@@ -126,7 +117,7 @@ bool CArduinoSerial::Connect(int iDevice, AS_LISTENER fxListener, HWND hParent)
     // Open handle to device
     if (FT_Open(iDevice, &m_ftDev) != FT_OK)
     {
-        ASError(_T("Could not open port to device %d."), iDevice);
+        ASError("Could not open port to device %d.\n", iDevice);
         return false;
     }
     
@@ -140,9 +131,30 @@ bool CArduinoSerial::Connect(int iDevice, AS_LISTENER fxListener, HWND hParent)
     pstThreadData->hParent = hParent;
     
     AfxBeginThread(ThreadFunc, (LPVOID)pstThreadData);
+
+    DWORD dwBytesRecvd = 0;
+    while (dwBytesRecvd == 0)
+    {
+        unsigned char conbyte = 42;
+        DWORD dwBytes;
+        if (FT_Write(m_ftDev, (void*)&conbyte, 1, &dwBytes) != FT_OK)
+        {
+            ASError("Write failed.\n");
+        }
+
+        unsigned char byte;
+        if (FT_Read(pstThreadData->ftDev, (LPVOID)&byte, 1, &dwBytesRecvd) != FT_OK)
+        {
+            TRACE("[ASTHREAD] Error while reading data off of line.\n");
+            break;
+        }
+
+        Sleep(500);
+    }
     
     // Notify and return
-    ASStatus(_T("Device %d (0x%x) opened for reading/writing"), iDevice, m_ftDev); 
+    ASStatus("Device %d (0x%x) opened for reading/writing\n", iDevice, m_ftDev); 
+
     return true;
 }
 
@@ -181,7 +193,7 @@ bool CArduinoSerial::Disconnect()
     // Make sure we're connected to something
     if (!Connected())
     {
-        ASError(_T("No device connected, cannot disconnect."));
+        ASError("No device connected, cannot disconnect.\n");
         return false;
     }
     
@@ -192,22 +204,22 @@ bool CArduinoSerial::Disconnect()
     {
         Sleep(100);
         if (!m_bStopThread) break;
-        ASStatus(_T("Waiting for thread to stop (%d)."), i);
+        ASStatus("Waiting for thread to stop (%d).\n", i);
     }   
     
     if (i == 10)
     {
-        ASError(_T("Thread did not exit."));
+        ASError("Thread did not exit.\n");
     }
     
     // Close device
     if (FT_Close(m_ftDev) != FT_OK)
     {
-        ASError(_T("Could not close device 0x%x."), m_ftDev);
+        ASError("Could not close device 0x%x.\n", m_ftDev);
         return false;
     }
     
-    ASStatus(_T("Device closed: 0x%x."), m_ftDev);    
+    ASStatus("Device closed: 0x%x.\b", m_ftDev);    
     m_ftDev = NULL;
     return true;
 }
@@ -244,7 +256,7 @@ bool CArduinoSerial::GetConnectedDevices(CStringVec& vecDevices)
     DWORD dwNumDevs;
     if( FT_CreateDeviceInfoList(&dwNumDevs) != FT_OK )
     {
-        ASError(_T("Could not obtain device information list."));
+        ASError("Could not obtain device information list.\n");
         return false;
     }
     
@@ -258,51 +270,86 @@ bool CArduinoSerial::GetConnectedDevices(CStringVec& vecDevices)
             
         if (dwStatus != FT_OK)
         {
-            ASError(_T("Could not obtain device information."));
+            ASError("Could not obtain device information.\n");
             return false;
         }
                 
         vecDevices.push_back(CString(strDesc));
     }    
     
-    return true; 
+    if (dwNumDevs > 0)
+        return true;
+    else
+        return false; 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// SendString
-bool CArduinoSerial::SendString(const CString& strData)
+// SendLEDValue
+bool CArduinoSerial::SendLEDValue(int r, int g, int b, int i)
 {
     if (!Connected())
     {
-        ASError(_T("No device connected."));
+        ASError("No device connected.\n");
         return false;
     }
-    
-    // Create buffer
-    int iBLen = strData.GetLength();
-    char* buf = (char*) malloc(iBLen); 
 
-    // Copy everything but nul byte
-    strncpy(buf, (char*)(LPCTSTR)strData, strData.GetLength());
+    // Create buffer
+    const int iBlen = 5;
+    unsigned char buf[iBlen] = {r, g, b, i};
     
-    // Send data
     DWORD dwBytes;
-    if (FT_Write(m_ftDev, (void*)buf, iBLen, &dwBytes) != FT_OK)
+    if (FT_Write(m_ftDev, (void*)buf, iBlen, &dwBytes) != FT_OK)
     {
-        ASError(_T("Write failed."));
+        ASError("Write failed.\n");
         return false;
     }
-    
+
     // Make sure we sent all the data
-    if (dwBytes != iBLen)
+    if (dwBytes != iBlen)
     {
-        ASError(_T("%u bytes sent, expected %d.") , dwBytes, iBLen);
+        ASError("%u bytes sent, expected %d.\n" , dwBytes, iBlen);
         return false;
     }   
-    
-    delete [] buf;
+   
     return true;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+// SendString
+//bool CArduinoSerial::SendString(const CString& strData)
+//{
+//    if (!Connected())
+//    {
+//        ASError(_T("No device connected."));
+//        return false;
+//    }
+//    
+//    // Create buffer
+//    int iBLen = strData.GetLength();
+//    char* buf = (char*) malloc(iBLen); 
+//
+//    // Copy everything but nul byte
+//    strncpy(buf, (char*)(LPCTSTR)strData, strData.GetLength());
+//    
+//    // Send data
+//    DWORD dwBytes;
+//    if (FT_Write(m_ftDev, (void*)buf, iBLen, &dwBytes) != FT_OK)
+//    {
+//        ASError(_T("Write failed."));
+//        return false;
+//    }
+//    
+//    // Make sure we sent all the data
+//    if (dwBytes != iBLen)
+//    {
+//        ASError(_T("%u bytes sent, expected %d.") , dwBytes, iBLen);
+//        return false;
+//    }   
+//    
+//    delete [] buf;
+//    return true;
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 // SendStringSim

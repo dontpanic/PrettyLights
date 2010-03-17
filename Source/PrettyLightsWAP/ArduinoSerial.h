@@ -3,8 +3,16 @@
 #include "MyStl.h"
 #include "ftd2xx.h"
 
-#define AS_POLL_PERIOD  50  // Polling period (ms)
-typedef void (*AS_LISTENER)(const CString&, HWND);
+#define AS_POLL_PERIOD  20  // Polling period (ms)
+typedef void (*AS_LISTENER)(unsigned char, HWND);
+
+// Arduino Commands
+#define PLA_CMD_CONNECT   0x01
+#define PLA_CMD_DATA      0x02
+
+// Arduino Errors
+#define PLA_ERR_NOCON     0xFF  
+#define PLA_ERR_NOCMD     0xFE
 
 class CArduinoSerial
 {
@@ -19,7 +27,8 @@ public:
     //bool DisconnectSim();
     bool Connected();
     bool GetConnectedDevices(CStringVec& vecDevices);
-    bool SendString(const CString& strData);
+    bool SendLEDValue(int r, int g, int b, int i);
+    //bool SendString(const CString& strData);
     //bool SendStringSim(const CString& strData);
     CString GetError();
     CString GetStatus();

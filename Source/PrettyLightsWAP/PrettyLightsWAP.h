@@ -28,7 +28,6 @@ public:
     static int Initalize(winampVisModule *this_mod);
     static int Render(winampVisModule *this_mod);
     static void Quit(winampVisModule *this_mod);
-
     // Helper functions
     void Initialize(HWND hwndWinamp, HINSTANCE hDllInstance, bool bShowDialogs);
     void Quit();
@@ -37,6 +36,8 @@ public:
     void WriteConfig();
     void InitializeDialogs(bool bShowDialogs);
     CString GetIniFile();
+    int GetIntensity(int iValue, int iThresh);
+    void SendBytes(int r, int g, int b, int i);
 
     bool m_bInBass;
     CArduinoSerial      m_as;
@@ -50,12 +51,15 @@ public:
     // Configuration
     bool    m_bSimEnabled;
     bool    m_bDbgEnabled;
+    int     m_iDevice;
+    int     m_iBassThresh;
     int     m_iLowThresh;
     int     m_iMidThresh;
     int     m_iHighThresh;
     int     m_iSimRows;
     int     m_iSimCols;
 
+    int m_iBassBounds[2];
 	int m_iLowBounds[2];
 	int m_iMidBounds[2];
 	int m_iHighBounds[2];

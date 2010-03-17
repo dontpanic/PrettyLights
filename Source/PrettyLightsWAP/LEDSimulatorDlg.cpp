@@ -127,82 +127,15 @@ void CLEDSimulatorDlg::OnDestroy()
     CDialog::OnDestroy();
 }
 
-bool CLEDSimulatorDlg::Parse(const CString& strData)
+bool CLEDSimulatorDlg::Parse(int r, int g, int b, int i)
 {
-    CString strTemp;
-    int R, G, B, I, iTok;
+	double dBrtScaler =(double)i / 255.0;
 
-    iTok = 0;
-    strTemp = strData.Tokenize(",", iTok);
-    R = atoi(strTemp);
-    strTemp = strData.Tokenize(",", iTok);
-    G = atoi(strTemp);
-    strTemp = strData.Tokenize(",", iTok);
-    B = atoi(strTemp);
-    strTemp = strData.Tokenize(",", iTok);
-    I = atoi(strTemp);
-
-	double dBrtScaler =(double)I / 255.0;
-
-	R *= dBrtScaler;
-	if (R > 255) R = 255;
-	G *= dBrtScaler;
-	if (G > 255) G = 255;
-	B *= dBrtScaler;
-	if (B > 255) B = 255;
-
-    m_vecLedColors[m_iTestIndx++] = RGB(R, G, B);
+    m_vecLedColors[m_iTestIndx++] = RGB(r * dBrtScaler, g * dBrtScaler, b * dBrtScaler);
 
     if (m_iTestIndx >= m_iRows * m_iCols)
         m_iTestIndx = 0;
 
-    // Copy CString into a char* to mimic C
-    //char* line = (char*) malloc(strData.GetLength() + 1);
-    //sprintf(line, "%s", strData);
-    //
-    //int R, G, B, I;
-    //char *temp;
-    //
-    //if ((temp = strtok(line, ",")) == NULL)
-    //{
-    //    TRACE("Expected R value not found\n");
-    //    return false;
-    //}
-    //    
-    //R = atoi(temp);
-    //    
-    //if ((temp = strtok(NULL, ",")) == NULL)
-    //{
-    //    TRACE("Expected G value not found\n");   
-    //    return false;
-    //}
-    //
-    //G = atoi(temp);         
-    //    
-    //if ((temp = strtok(NULL, ",")) == NULL)
-    //{
-    //    TRACE("Expected B value not found\n");
-    //    return false;
-    //}
-    //    
-    //B = atoi(temp);
-    //
-    //if ((temp = strtok(NULL, ",\n ")) == NULL)
-    //{
-    //    TRACE("Expected I value not found\n");
-    //    return false;
-    //}
-    //    
-    //I = atoi(temp); // NOT USED HERE
-    //
-    //// Save to simulator data. 
-    //if (m_iTestIndx >= m_vecLedColors.size())
-    //{
-    //    m_iTestIndx = 0;
-    //}        
-    //m_vecLedColors[m_iTestIndx++] = RGB(R, G, B);
-    //
-    //free(line);
     Invalidate();
     return true;
 }

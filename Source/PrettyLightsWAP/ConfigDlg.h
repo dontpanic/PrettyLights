@@ -23,6 +23,9 @@ protected:
     afx_msg void OnClicked_EnableSimChk();
     afx_msg void OnClicked_LowSlider(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnDestroy();
+	afx_msg void OnClicked_MidSlider(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnClicked_HighSlider(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnClicked_BassSlider(NMHDR *pNMHDR, LRESULT *pResult);
 
     //void EnableSim();
     //void DisableSim();
@@ -41,7 +44,9 @@ protected:
     CEdit m_dlgLowEdit;
     CEdit m_dlgMidEdit;
     CEdit m_dlgHighEdit;
-public:
-	afx_msg void OnClicked_MidSlider(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnClicked_HighSlider(NMHDR *pNMHDR, LRESULT *pResult);
+    CSliderCtrl m_dlgBassSlider;
+    CEdit m_dlgBassEdit;
+    CComboBox m_dlgDeviceBox;
+
+    int m_iNumDevices;
 };

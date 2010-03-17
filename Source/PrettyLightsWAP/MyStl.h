@@ -3,7 +3,9 @@
 
 #define DEF_ITERATORS(c) \
 	typedef c::iterator c##Iter; \
-	typedef c::const_iterator c##CIter
+	typedef c::const_iterator c##CIter; \
+    typedef c::reverse_iterator c##RIter; \
+    typedef c::const_reverse_iterator c##CRIter
 	
 
 // Sting vector
