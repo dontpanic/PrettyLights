@@ -24,9 +24,10 @@ void CDebugConsoleDlg::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
     DDX_Control(pDX, IDC_EDT_CNSL, m_dlgEditBox);
-	//DDX_Control(pDX, IDC_PGR_BASS, m_bass);
-	//DDX_Control(pDX, IDC_PGR_MID, m_mid);
-	//DDX_Control(pDX, IDC_PGR_HIGH, m_high);
+    //DDX_Control(pDX, IDC_PGR_BASS, m_bass);
+    //DDX_Control(pDX, IDC_PGR_MID, m_mid);
+    //DDX_Control(pDX, IDC_PGR_HIGH, m_high);
+    DDX_Control(pDX, IDC_EDT_CNSL2, m_dlgEditBox2);
 }
 
 
@@ -61,5 +62,25 @@ void CDebugConsoleDlg::AddString(const CString& str)
         m_dlgEditBox.SetWindowText(m_strData);
         int iLen = m_dlgEditBox.GetWindowTextLength();
         m_dlgEditBox.SetSel(iLen, iLen);
+        m_strData = "";
+    }
+}
+
+void CDebugConsoleDlg::AddStringArduino(const CString& str)
+{
+    if (m_bDialog)
+    {   
+        m_dlgEditBox2.GetWindowText(m_strData2);
+    }
+
+    CTime time = CTime::GetCurrentTime(); 
+    m_strData2.AppendFormat("[%s] %s\r\n", time.Format("%I:%M:%S"), str);
+
+    if (m_bDialog)
+    {
+        m_dlgEditBox2.SetWindowText(m_strData2);
+        int iLen = m_dlgEditBox2.GetWindowTextLength();
+        m_dlgEditBox2.SetSel(iLen, iLen);
+        m_strData2 = "";
     }
 }

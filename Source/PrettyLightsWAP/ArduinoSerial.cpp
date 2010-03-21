@@ -120,7 +120,21 @@ bool CArduinoSerial::Connect(int iDevice, AS_LISTENER fxListener, HWND hParent)
         ASError("Could not open port to device %d.\n", iDevice);
         return false;
     }
-    
+
+    // Set baud rate
+
+    if (FT_SetBaudRate(m_ftDev, 9600) != FT_OK)
+    {
+        ASError("Error setting baud rate.\n");
+        return false;
+    }
+
+    // Purge device buffers
+    if (FT_Purge(m_ftDev, FT_PURGE_RX | FT_PURGE_TX) != FT_OK)
+    {
+        ASError("Error purging buffers.\n", iDevice);
+    }
+
     // Start listener thread
     m_bStopThread = false;
     
@@ -148,6 +162,8 @@ bool CArduinoSerial::Connect(int iDevice, AS_LISTENER fxListener, HWND hParent)
             TRACE("[ASTHREAD] Error while reading data off of line.\n");
             break;
         }
+
+        TRACE("Byte recvd: %hu\n", byte);
 
         Sleep(500);
     }
@@ -202,7 +218,7 @@ bool CArduinoSerial::Disconnect()
     int i;
     for (i = 0; m_bStopThread && i < 10; i++)
     {
-        Sleep(100);
+        Sleep(50);
         if (!m_bStopThread) break;
         ASStatus("Waiting for thread to stop (%d).\n", i);
     }   
@@ -294,7 +310,7 @@ bool CArduinoSerial::SendLEDValue(int r, int g, int b, int i)
     }
 
     // Create buffer
-    const int iBlen = 5;
+    const int iBlen = 4;
     unsigned char buf[iBlen] = {r, g, b, i};
     
     DWORD dwBytes;
@@ -309,7 +325,10 @@ bool CArduinoSerial::SendLEDValue(int r, int g, int b, int i)
     {
         ASError("%u bytes sent, expected %d.\n" , dwBytes, iBlen);
         return false;
-    }   
+    }
+
+    // pause
+    Sleep(10);
    
     return true;
 }

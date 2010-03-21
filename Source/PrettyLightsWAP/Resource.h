@@ -4,6 +4,7 @@
 //
 #define IDC_EDT_CNSL                    300
 #define IDC_CHK_ENABLESIM               301
+#define IDC_EDT_CNSL2                   301
 #define IDC_EDT_SIMY                    302
 #define IDC_CHK_SHWCNSL                 304
 #define IDC_SLD_THLOW                   305

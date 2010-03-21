@@ -1,33 +1,39 @@
 #define PLA_NUM_LED  4
 #define PLA_CONBYTE  42
 
+#define ERROR_PIN    13
+
 // Globals
 int g_pinIndx = 0;
 int g_pins[PLA_NUM_LED] = {3, 5, 6, 9};
 
 void setup() 
-{
+{  
   // Setup serial
   Serial.begin(9600);
   Serial.flush();
   
   // Handshake
-  while (!Serial.available())
+  int brecv = 0;
+  while (brecv != PLA_CONBYTE)
   {
-    if (Serial.read() == PLA_CONBYTE)
-      break; 
+    while (!Serial.available())
+    {    
+      delay(200);    
+    }
     
-    delay(500);
+    brecv = Serial.read();
   }
   
-  Serial.write(PLA_CONBYTE);
+  Serial.write(PLA_CONBYTE);  
+  Serial.println("Arduino connected.");
   
   // Setup LEDs
   for (int i = 0; i < PLA_NUM_LED; i++)
   {
     pinMode(g_pins[i], OUTPUT);
     analogWrite(g_pins[i], 175.0);
-    delay(200);
+    delay(100);
     analogWrite(g_pins[i], 0);
   }
 }
@@ -35,28 +41,29 @@ void setup()
 void loop()
 {
   // Check for data on serial comm line
-  if (Serial.available() >= 16)
+  if (Serial.available() >= 4)
   {
-    read_data();
-  }
-  
-  delay(20);
-}
-
-void read_data()
-{
-  for (int led = 0; led < PLA_NUM_LED; led++)
-  {
-     int r, g, b, i;
-     
-     // Get RGBI
-     r = Serial.read();
-     g = Serial.read();
-     b = Serial.read();
-     i = Serial.read();
+     unsigned char r, g, b, i;       
+     if ((r = Serial.read()) == -1)
+       error();
+     if ((g = Serial.read()) == -1)
+       error();
+     if ((b = Serial.read()) == -1)
+       error();
+     if ((i = Serial.read()) == -1)
+       error();
        
-     // Send value
-     analogWrite(g_pins[led], i);
+     i = 1.16 * pow(2.71828183, 0.147 * ((float)i / 7.29));
+     
+     //(int)((float)i / 3.0)
+     analogWrite(g_pins[g_pinIndx++], i);
+     
+     if (g_pinIndx == PLA_NUM_LED) 
+       g_pinIndx = 0;
   }
 }
 
+void error()
+{
+  Serial.println("Error while reading from serial.");
+}

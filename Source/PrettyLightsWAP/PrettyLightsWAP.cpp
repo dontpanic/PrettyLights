@@ -213,13 +213,21 @@ int CPrettyLightsWAPApp::Render(winampVisModule *this_mod)
 	return 0;
 }
 
+CString strMsg = "";
+
 ///////////////////////////////////////////////////////////////////////////////
 // Listener
-void Listener(unsigned char err, HWND hParent)
+void Listener(unsigned char byte, HWND hParent)
 {
-    CString strErr;
-    strErr.Format("Arduino ErrorL %hu", err);
-    theApp.m_pDebugDlg->AddString(strErr);
+    if (byte == '\n')
+    {     
+        theApp.m_pDebugDlg->AddStringArduino(strMsg);
+        strMsg = "";
+    }
+    else
+    {
+        strMsg.AppendChar(byte);
+    }
 } 
 
 
@@ -418,14 +426,14 @@ void CPrettyLightsWAPApp::SendBytes(int r, int g, int b, int i)
 {
     if (m_bSimEnabled)
     {
-        theApp.m_pSimDlg->Parse(r, g, b, i);
+        m_pSimDlg->Parse(r, g, b, i);
     }
 
     if (m_iDevice != -1)
     {
         //CString str;
-        //str.Format("Sent data: (%d, %d, %d, %d)", r, g, b, i);
-        //theApp.m_pDebugDlg->AddString(str);
-        theApp.m_as.SendLEDValue(r, g, b, i);
+        //str.Format("Sent data: (%d, %d, %d, %d)\n", r, g, b, i);
+        //TRACE(str);
+        m_as.SendLEDValue(r, g, b, i);
     }
 }
